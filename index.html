@@ -142,6 +142,55 @@
   .task-memo-link { font-size: 11px; color: var(--info-text); word-break: break-all; display: flex; align-items: center; gap: 4px; text-decoration: none; }
   .task-memo-link:hover { text-decoration: underline; }
   .memo-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--info-text); flex-shrink: 0; margin-top: 1px; }
+
+  /* ---- 時間管理 スタイル ---- */
+  .effort-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+  .effort-row:last-child { border-bottom: none; }
+  .effort-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .effort-name { flex: 1; font-size: 13px; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .effort-pct-input { width: 62px !important; text-align: center; padding: 5px 8px !important; font-size: 13px; }
+  .effort-total-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--border); font-size: 13px; }
+  .effort-total-num { font-weight: 600; font-size: 15px; }
+  .effort-total-ok { color: #1D9E75; }
+  .effort-total-warn { color: #BA7517; }
+  .effort-total-over { color: #A32D2D; }
+  /* 週次バー */
+  .week-bar-row { margin-bottom: 14px; }
+  .week-bar-row:last-child { margin-bottom: 0; }
+  .week-bar-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+  .week-bar-name { font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 6px; }
+  .week-bar-hrs { font-size: 12px; color: var(--text2); }
+  .week-bar-track { position: relative; height: 14px; background: var(--bg2); border-radius: 7px; }
+  .week-bar-fill { position: absolute; top: 0; left: 0; height: 100%; border-radius: 7px; transition: width 0.4s; }
+  .week-bar-stretch { position: absolute; top: 0; height: 100%; border-radius: 0 7px 7px 0; transition: width 0.4s; opacity: 0.35; }
+  .week-bar-100line { position: absolute; top: -4px; bottom: -4px; width: 1.5px; background: var(--text3); border-radius: 1px; }
+  .week-bar-tag { font-size: 10px; color: var(--text3); position: absolute; top: -16px; transform: translateX(-50%); }
+  .week-bar-celebrate { font-size: 11px; color: #1D9E75; font-weight: 500; }
+  /* デイリー記録 */
+  .log-row { display: flex; align-items: center; gap: 8px; padding: 11px 0; border-bottom: 0.5px solid var(--border); }
+  .log-row:last-child { border-bottom: none; }
+  .log-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .log-name { flex: 1; font-size: 14px; color: var(--text); font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .log-hours-display { font-size: 18px; font-weight: 600; color: var(--text); min-width: 46px; text-align: center; }
+  .log-btn { width: 42px; height: 42px; border-radius: 50%; border: 0.5px solid var(--border2); display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg2); flex-shrink: 0; font-size: 13px; font-weight: 600; color: var(--text2); font-family: var(--font); transition: all 0.15s; }
+  .log-btn:hover { background: var(--bg3); border-color: var(--text3); }
+  .log-btn:active { transform: scale(0.93); }
+  .log-btn-plus { background: var(--text) !important; color: var(--bg) !important; border-color: transparent !important; font-size: 20px !important; }
+  .log-btn-plus:hover { opacity: 0.85; }
+  .log-total-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--border); font-size: 13px; color: var(--text2); }
+  .log-total-num { font-size: 15px; font-weight: 600; color: var(--text); }
+  /* ヒートマップ */
+  .heatmap-scroll { overflow-x: auto; padding-bottom: 4px; }
+  .heatmap-inner { display: inline-flex; flex-direction: column; gap: 5px; min-width: 100%; }
+  .heatmap-proj-row { display: flex; align-items: center; gap: 5px; }
+  .heatmap-proj-label { font-size: 11px; color: var(--text2); width: 80px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; padding-right: 6px; }
+  .heatmap-cells { display: flex; gap: 3px; }
+  .heatmap-cell { width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0; }
+  .heatmap-day-labels { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+  .heatmap-day-label-spacer { width: 80px; flex-shrink: 0; }
+  .heatmap-day-label { width: 22px; font-size: 9px; color: var(--text3); text-align: center; flex-shrink: 0; }
+  .heatmap-week-sep { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; margin: 0 1px; }
+
   @media (max-width: 500px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .project-grid { grid-template-columns: 1fr; }
@@ -171,6 +220,7 @@
   <div id="main-view">
     <div class="tabs" id="main-tabs">
       <button class="tab active" onclick="switchMainTab('projects')"><i class="ti ti-folder"></i>プロジェクト</button>
+      <button class="tab" onclick="switchMainTab('time')"><i class="ti ti-clock"></i>時間管理</button>
       <button class="tab" onclick="switchMainTab('settings')"><i class="ti ti-settings"></i>設定</button>
     </div>
     <div class="content">
@@ -178,6 +228,65 @@
         <div class="stats-row" id="stats-row"></div>
         <div class="project-grid" id="project-grid"></div>
       </div>
+
+      <!-- 時間管理パネル -->
+      <div class="panel" id="panel-time">
+
+        <!-- エフォート率設定 -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">エフォート率の設定</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="form-label" style="white-space:nowrap;">週の稼働時間</span>
+              <input type="number" id="weekly-hours-input" min="1" max="168" style="width:64px;padding:4px 8px;font-size:13px;" oninput="saveWeeklyHours()" />
+              <span class="form-label">h</span>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">各プロジェクトへの時間配分を%で設定します。合計100%が基準、120%はストレッチ目標です。</p>
+          <div id="effort-list"></div>
+        </div>
+
+        <!-- 今日の記録 -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">今日の記録</span>
+            <span id="today-label" style="font-size:12px;color:var(--text2);"></span>
+          </div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">今日使った時間を30分単位で記録します。</p>
+          <div id="daily-log-list"></div>
+        </div>
+
+        <!-- 期間ナビゲーション共通ヘッダー -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button onclick="shiftPeriod(-1)" style="width:32px;height:32px;padding:0;justify-content:center;border-radius:50%;"><i class="ti ti-chevron-left"></i></button>
+            <span id="period-label" style="font-size:13px;font-weight:500;color:var(--text);min-width:130px;text-align:center;"></span>
+            <button onclick="shiftPeriod(1)" id="btn-next-period" style="width:32px;height:32px;padding:0;justify-content:center;border-radius:50%;"><i class="ti ti-chevron-right"></i></button>
+          </div>
+          <div style="display:flex;gap:4px;">
+            <button id="btn-mode-week" onclick="setViewMode('week')" class="small primary">週</button>
+            <button id="btn-mode-month" onclick="setViewMode('month')" class="small">月</button>
+          </div>
+        </div>
+
+        <!-- 実績ダッシュボード -->
+        <div class="card">
+          <div class="card-header" style="margin-bottom:0.75rem;">
+            <span class="card-title" id="dashboard-title">実績</span>
+          </div>
+          <div id="weekly-dashboard"></div>
+        </div>
+
+        <!-- 振り返りヒートマップ -->
+        <div class="card">
+          <div class="card-header" style="margin-bottom:0.75rem;">
+            <span class="card-title">振り返り</span>
+          </div>
+          <div id="heatmap-area"></div>
+        </div>
+
+      </div>
+
       <div class="panel" id="panel-settings">
         <div class="card">
           <div class="card-header"><span class="card-title">☁️ GitHub Gist 同期</span></div>
@@ -301,6 +410,9 @@
 
 <script>
 let projects = [], currentProjectId = null, editingTaskId = null;
+let settings = { weeklyHours: 40 };
+let dailyLogs = []; // [{ date:'2026-05-18', projectId:1, hours:1.5 }, ...]
+let viewOffset = 0, viewMode = 'week'; // 実績・振り返りの表示期間
 const COLORS = ['#1D9E75','#378ADD','#D85A30','#BA7517','#7F77DD','#D4537E','#639922','#533F6B'];
 
 // ---- GitHub Gist Sync ----
@@ -341,7 +453,8 @@ async function saveToGist() {
   const token = getGithubToken();
   if(!token) { setGistStatus('⚠ GitHub Tokenが設定されていません', '#A32D2D'); return; }
   setGistStatus('保存中...', 'var(--text2)');
-  const payload = JSON.stringify({ projects, version: 2, savedAt: new Date().toISOString() }, null, 2);
+  // version 3: projects + settings + dailyLogs
+  const payload = JSON.stringify({ projects, settings, dailyLogs, version: 3, savedAt: new Date().toISOString() }, null, 2);
   const gistId = getGistId();
   try {
     let res, data;
@@ -387,24 +500,27 @@ async function loadFromGist() {
     const parsed = JSON.parse(fileContent);
     if(parsed.projects) {
       projects = parsed.projects;
-      save();
-      render();
+      // version 3: settings と dailyLogs も読み込む（旧バージョンは undefined → デフォルト維持）
+      if(parsed.settings) settings = { ...settings, ...parsed.settings };
+      if(parsed.dailyLogs) dailyLogs = parsed.dailyLogs;
+      save(); saveSettings(); saveLogs();
+      render(); renderTimeMgmt();
       const now = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'});
       setGistStatus(`✓ Gistから読み込みました（${now}）`, '#1D9E75');
     }
   } catch(e) { setGistStatus(`エラー: ${e.message}`, '#A32D2D'); }
 }
 
-async function syncGist() {
-  // 保存してから読み込む（他デバイスとの競合を避けるため保存優先）
-  await saveToGist();
-}
+async function syncGist() { await saveToGist(); }
 // ---- End Gist Sync ----
 
 function load() {
   try { const d = localStorage.getItem('pm_projects'); if(d) projects = JSON.parse(d); } catch(e) { projects = []; }
+  try { const d = localStorage.getItem('pm_settings'); if(d) settings = { ...settings, ...JSON.parse(d) }; } catch(e) {}
+  try { const d = localStorage.getItem('pm_logs'); if(d) dailyLogs = JSON.parse(d); } catch(e) {}
   if(!projects.length) { projects = getSamples(); save(); }
   render();
+  renderTimeMgmt();
   // Gist設定の復元
   const githubToken = getGithubToken();
   const gistId = getGistId();
@@ -415,7 +531,7 @@ function load() {
 
 function getSamples() {
   return [
-    { id: 1, name: 'Webサイトリニューアル', desc: 'コーポレートサイトの全面刷新', status: '進行中', color: '#1D9E75', tasks: [
+    { id: 1, name: 'Webサイトリニューアル', desc: 'コーポレートサイトの全面刷新', status: '進行中', color: '#1D9E75', effortRate: 40, tasks: [
       { id: 101, text: 'デザインカンプ作成', priority: 'high', status: 'done' },
       { id: 102, text: 'トップページ実装', priority: 'high', status: 'doing' },
       { id: 103, text: 'CMSセットアップ', priority: 'mid', status: 'todo' },
@@ -424,6 +540,8 @@ function getSamples() {
 }
 
 function save() { try { localStorage.setItem('pm_projects', JSON.stringify(projects)); } catch(e) {} }
+function saveSettings() { try { localStorage.setItem('pm_settings', JSON.stringify(settings)); } catch(e) {} }
+function saveLogs() { try { localStorage.setItem('pm_logs', JSON.stringify(dailyLogs)); } catch(e) {} }
 
 function render() { renderStats(); renderProjectGrid(); }
 
@@ -443,6 +561,7 @@ function renderProjectGrid() {
     const done = tasks.filter(t => t.status === 'done').length;
     const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0;
     const hasMd = !!(p.mdContent || p.mdText);
+    const effortRate = p.effortRate || 0;
     return `<div class="project-card" onclick="openProject(${p.id})">
       <div class="project-card-header">
         <div class="project-dot" style="background:${p.color}"></div>
@@ -456,6 +575,7 @@ function renderProjectGrid() {
       <div class="progress-label"><span>${done}/${tasks.length} 完了</span><span>${pct}%</span></div>
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${p.color}"></div></div>
       <div class="task-count">${tasks.filter(t=>t.status==='doing').length} 件進行中・${tasks.filter(t=>t.status==='todo').length} 件未着手</div>
+      ${effortRate ? `<div style="font-size:11px;color:var(--text3);margin-top:5px;">エフォート ${effortRate}%</div>` : ''}
       ${hasMd ? `<div><span class="md-badge"><i class="ti ti-file-check" style="font-size:11px;"></i> MD読込済</span></div>` : ''}
     </div>`;
   }).join('');
@@ -465,10 +585,328 @@ function renderProjectGrid() {
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function switchMainTab(tab) {
-  const tabs = ['projects','settings'];
+  const tabs = ['projects','time','settings'];
   document.querySelectorAll('#main-tabs .tab').forEach((t,i) => t.classList.toggle('active', tabs[i] === tab));
   tabs.forEach(id => { const el = document.getElementById('panel-'+id); if(el) el.classList.toggle('active', id === tab); });
+  if(tab === 'time') renderTimeMgmt();
 }
+
+// ---- 時間管理 ----
+
+function getTodayStr() { return new Date().toISOString().slice(0,10); }
+
+function getWeekDates(referenceDate) {
+  const ref = referenceDate ? new Date(referenceDate) : new Date();
+  const day = ref.getDay();
+  const diffToMon = day === 0 ? -6 : 1 - day;
+  const mon = new Date(ref);
+  mon.setDate(ref.getDate() + diffToMon);
+  const dates = [];
+  for(let i = 0; i < 7; i++) {
+    const d = new Date(mon);
+    d.setDate(mon.getDate() + i);
+    dates.push(d.toISOString().slice(0,10));
+  }
+  return dates;
+}
+
+function getPeriodDates() {
+  if(viewMode === 'week') {
+    const ref = new Date();
+    ref.setDate(ref.getDate() + viewOffset * 7);
+    return getWeekDates(ref);
+  } else {
+    const ref = new Date();
+    const y = ref.getFullYear(), m = ref.getMonth() + viewOffset;
+    const first = new Date(y, m, 1);
+    const last = new Date(y, m + 1, 0);
+    const dates = [];
+    for(let d = new Date(first); d <= last; d.setDate(d.getDate() + 1))
+      dates.push(d.toISOString().slice(0,10));
+    return dates;
+  }
+}
+
+function getPeriodLabel() {
+  if(viewMode === 'week') {
+    const dates = getPeriodDates();
+    const d0 = new Date(dates[0]), d6 = new Date(dates[6]);
+    const sameMonth = d0.getMonth() === d6.getMonth();
+    return sameMonth
+      ? `${d0.getMonth()+1}/${d0.getDate()} 〜 ${d6.getDate()}`
+      : `${d0.getMonth()+1}/${d0.getDate()} 〜 ${d6.getMonth()+1}/${d6.getDate()}`;
+  } else {
+    const ref = new Date();
+    const d = new Date(ref.getFullYear(), ref.getMonth() + viewOffset, 1);
+    return `${d.getFullYear()}年${d.getMonth()+1}月`;
+  }
+}
+
+function getPeriodTargetHours(p) {
+  const wh = settings.weeklyHours || 40;
+  const er = p.effortRate || 0;
+  if(viewMode === 'week') return wh * er / 100;
+  const dates = getPeriodDates();
+  return (wh / 7) * dates.length * er / 100;
+}
+
+function shiftPeriod(dir) {
+  viewOffset += dir;
+  // 未来へは行けない（今日を含む週/月まで）
+  if(viewMode === 'week' && viewOffset > 0) viewOffset = 0;
+  if(viewMode === 'month' && viewOffset > 0) viewOffset = 0;
+  updatePeriodNav();
+  renderWeeklyDashboard();
+  renderHeatmap();
+}
+
+function setViewMode(mode) {
+  viewMode = mode;
+  viewOffset = 0;
+  document.getElementById('btn-mode-week').className = mode === 'week' ? 'small primary' : 'small';
+  document.getElementById('btn-mode-month').className = mode === 'month' ? 'small primary' : 'small';
+  updatePeriodNav();
+  renderWeeklyDashboard();
+  renderHeatmap();
+}
+
+function updatePeriodNav() {
+  const lbl = document.getElementById('period-label');
+  if(lbl) lbl.textContent = getPeriodLabel();
+  const btnNext = document.getElementById('btn-next-period');
+  if(btnNext) btnNext.style.opacity = viewOffset >= 0 ? '0.3' : '1';
+  const title = document.getElementById('dashboard-title');
+  if(title) title.textContent = viewMode === 'week' ? '週間実績' : '月間実績';
+}
+
+function getLogHours(date, projectId) {
+  return dailyLogs
+    .filter(l => l.date === date && l.projectId === projectId)
+    .reduce((sum, l) => sum + l.hours, 0);
+}
+
+function getPeriodHours(projectId) {
+  return getPeriodDates().reduce((sum, d) => sum + getLogHours(d, projectId), 0);
+}
+
+function addLog(projectId, delta) {
+  const date = getTodayStr();
+  const idx = dailyLogs.findIndex(l => l.date === date && l.projectId === projectId);
+  if(idx >= 0) {
+    const newVal = Math.round((dailyLogs[idx].hours + delta) * 10) / 10;
+    if(newVal <= 0) dailyLogs.splice(idx, 1);
+    else dailyLogs[idx].hours = newVal;
+  } else if(delta > 0) {
+    dailyLogs.push({ date, projectId, hours: delta });
+  }
+  saveLogs();
+  renderDailyLog();
+  renderWeeklyDashboard();
+  renderHeatmap();
+}
+
+function saveEffortRate(projectId, val) {
+  const p = projects.find(x => x.id === projectId);
+  if(!p) return;
+  p.effortRate = Math.max(0, Math.min(120, parseInt(val) || 0));
+  save();
+  renderEffortList();
+  renderWeeklyDashboard();
+  renderProjectGrid();
+}
+
+function saveWeeklyHours() {
+  const val = parseInt(document.getElementById('weekly-hours-input')?.value) || 40;
+  settings.weeklyHours = Math.max(1, Math.min(168, val));
+  saveSettings();
+  renderWeeklyDashboard();
+}
+
+function renderTimeMgmt() {
+  renderEffortList();
+  renderDailyLog();
+  updatePeriodNav();
+  renderWeeklyDashboard();
+  renderHeatmap();
+  const inp = document.getElementById('weekly-hours-input');
+  if(inp) inp.value = settings.weeklyHours || 40;
+  // ボタン状態
+  const bw = document.getElementById('btn-mode-week');
+  const bm = document.getElementById('btn-mode-month');
+  if(bw) bw.className = viewMode === 'week' ? 'small primary' : 'small';
+  if(bm) bm.className = viewMode === 'month' ? 'small primary' : 'small';
+}
+
+function renderEffortList() {
+  const total = projects.reduce((s, p) => s + (p.effortRate || 0), 0);
+  const totalClass = total === 100 ? 'effort-total-ok' : total < 100 ? 'effort-total-warn' : 'effort-total-over';
+  const totalMsg = total === 100 ? '✓ 合計100%' : total < 100 ? `合計 ${total}%（残り ${100 - total}%）` : `合計 ${total}%（+${total - 100}% ストレッチ）`;
+  const rows = projects.map(p => `
+    <div class="effort-row">
+      <div class="effort-dot" style="background:${p.color}"></div>
+      <div class="effort-name">${esc(p.name)}</div>
+      <input class="effort-pct-input" type="number" min="0" max="120" value="${p.effortRate || 0}"
+        onchange="saveEffortRate(${p.id}, this.value)"
+        oninput="saveEffortRate(${p.id}, this.value)"
+        style="width:62px;text-align:center;padding:5px 8px;" />
+      <span style="font-size:13px;color:var(--text2);">%</span>
+    </div>
+  `).join('');
+  const noProj = projects.length === 0 ? '<div class="empty">プロジェクトがありません</div>' : '';
+  const el = document.getElementById('effort-list');
+  if(el) el.innerHTML = noProj || rows + `
+    <div class="effort-total-row">
+      <span style="color:var(--text2);font-size:13px;">合計</span>
+      <span class="effort-total-num ${totalClass}">${totalMsg}</span>
+    </div>`;
+}
+
+function renderDailyLog() {
+  const today = getTodayStr();
+  const d = new Date();
+  const label = `${d.getMonth()+1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）`;
+  const el = document.getElementById('today-label');
+  if(el) el.textContent = label;
+
+  const todayTotal = projects.reduce((s, p) => s + getLogHours(today, p.id), 0);
+  const rows = projects.map(p => {
+    const hrs = getLogHours(today, p.id);
+    return `<div class="log-row">
+      <div class="log-dot" style="background:${p.color}"></div>
+      <div class="log-name">${esc(p.name)}</div>
+      <button class="log-btn" onclick="addLog(${p.id}, -0.5)" title="-30分">－</button>
+      <div class="log-hours-display" id="log-hrs-${p.id}">${hrs > 0 ? hrs + 'h' : '—'}</div>
+      <button class="log-btn log-btn-plus" onclick="addLog(${p.id}, 0.5)" title="+30分">＋</button>
+    </div>`;
+  }).join('');
+
+  const totalRow = `<div class="log-total-row">
+    <span>今日の合計</span>
+    <span class="log-total-num">${todayTotal > 0 ? todayTotal + 'h' : '—'}</span>
+  </div>`;
+
+  const listEl = document.getElementById('daily-log-list');
+  if(listEl) listEl.innerHTML = projects.length ? rows + totalRow : '<div class="empty">プロジェクトがありません</div>';
+}
+
+function renderWeeklyDashboard() {
+  updatePeriodNav();
+  const rows = projects.map(p => {
+    const target = Math.round(getPeriodTargetHours(p) * 10) / 10;
+    const actual = Math.round(getPeriodHours(p.id) * 10) / 10;
+    const barMax = Math.max(target * 1.25, actual, 0.5);
+    const mainWidth = target > 0
+      ? Math.min(actual, target) / barMax * 100
+      : actual / barMax * 100;
+    const stretchWidth = actual > target && target > 0
+      ? Math.min(actual - target, target * 0.25) / barMax * 100
+      : 0;
+    const line100Pct = target > 0 ? target / barMax * 100 : 0;
+    const pct = target > 0 ? Math.round(actual / target * 100) : null;
+    const isStretch = actual > target && target > 0;
+    const celebrate = pct !== null && pct >= 115 ? ' 🎉' : pct !== null && pct >= 100 ? ' ✓' : '';
+    const hrsLabel = target > 0
+      ? `${actual}h / 目標${target}h${celebrate}`
+      : `${actual}h（目標未設定）`;
+
+    return `<div class="week-bar-row">
+      <div class="week-bar-label">
+        <span class="week-bar-name">
+          <span style="width:8px;height:8px;border-radius:50%;background:${p.color};display:inline-block;flex-shrink:0;"></span>
+          ${esc(p.name)}
+        </span>
+        <span class="week-bar-hrs ${isStretch ? 'week-bar-celebrate' : ''}">${hrsLabel}</span>
+      </div>
+      <div class="week-bar-track">
+        <div class="week-bar-fill" style="width:${mainWidth}%;background:${p.color};border-radius:${stretchWidth > 0 ? '7px 0 0 7px' : '7px'};"></div>
+        ${stretchWidth > 0 ? `<div class="week-bar-stretch" style="left:${line100Pct}%;width:${stretchWidth}%;background:${p.color};"></div>` : ''}
+        ${target > 0 ? `<div class="week-bar-100line" style="left:${line100Pct}%;"></div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const el = document.getElementById('weekly-dashboard');
+  if(el) el.innerHTML = projects.length ? rows : '<div class="empty">プロジェクトがありません</div>';
+}
+
+function renderHeatmap() {
+  const dates = getPeriodDates();
+  const isMonth = viewMode === 'month';
+  const cellSize = isMonth ? 18 : 22;
+  const cellGap = isMonth ? 2 : 3;
+  const maxHrs = 4;
+
+  function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return {r,g,b};
+  }
+
+  // 日付ラベル行
+  const dayNames = '日月火水木金土';
+  const headerCells = dates.map(d => {
+    const dt = new Date(d);
+    const isMonday = dt.getDay() === 1;
+    const isToday = d === getTodayStr();
+    const borderLeft = isMonday && dates.indexOf(d) > 0 ? `border-left:1px solid var(--border);padding-left:${cellGap+1}px;` : '';
+    return `<div style="width:${cellSize}px;font-size:9px;text-align:center;flex-shrink:0;${isToday?'color:var(--text);font-weight:600;':'color:var(--text3);'}${borderLeft}">${dayNames[dt.getDay()]}</div>`;
+  }).join('');
+
+  // 月表示では日付も追加で1行
+  let dateNumRow = '';
+  if(isMonth) {
+    const numCells = dates.map(d => {
+      const dt = new Date(d);
+      const isMonday = dt.getDay() === 1;
+      const borderLeft = isMonday && dates.indexOf(d) > 0 ? `border-left:1px solid var(--border);padding-left:${cellGap+1}px;` : '';
+      const isToday = d === getTodayStr();
+      return `<div style="width:${cellSize}px;font-size:8px;text-align:center;flex-shrink:0;${isToday?'color:var(--text);font-weight:600;':'color:var(--text3);'}${borderLeft}">${dt.getDate()}</div>`;
+    }).join('');
+    dateNumRow = `<div style="display:flex;align-items:center;gap:${cellGap}px;">
+      <div style="width:80px;flex-shrink:0;"></div>
+      <div style="display:flex;gap:${cellGap}px;">${numCells}</div>
+    </div>`;
+  }
+
+  const projRows = projects.map(p => {
+    const rgb = hexToRgb(p.color);
+    const cells = dates.map((d, i) => {
+      const hrs = getLogHours(d, p.id);
+      const intensity = hrs === 0 ? 0 : Math.min(hrs / maxHrs, 1);
+      const dt = new Date(d);
+      const isMonday = dt.getDay() === 1;
+      const borderLeft = isMonday && i > 0 ? `border-left:1px solid var(--border);margin-left:${cellGap}px;` : '';
+      let bg;
+      if(hrs === 0) bg = 'background:var(--bg2);';
+      else {
+        const alpha = 0.15 + intensity * 0.85;
+        bg = `background:rgba(${rgb.r},${rgb.g},${rgb.b},${alpha.toFixed(2)});`;
+      }
+      return `<div style="width:${cellSize}px;height:${cellSize}px;border-radius:3px;flex-shrink:0;${bg}${borderLeft}" title="${d}: ${hrs}h"></div>`;
+    }).join('');
+
+    return `<div style="display:flex;align-items:center;gap:${cellGap}px;">
+      <div style="width:80px;flex-shrink:0;font-size:11px;color:var(--text2);text-align:right;padding-right:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(p.name)}">${esc(p.name)}</div>
+      <div style="display:flex;gap:${cellGap}px;">${cells}</div>
+    </div>`;
+  }).join('');
+
+  const el = document.getElementById('heatmap-area');
+  if(el) el.innerHTML = projects.length
+    ? `<div style="overflow-x:auto;padding-bottom:4px;">
+        <div style="display:inline-flex;flex-direction:column;gap:4px;min-width:100%;">
+          <div style="display:flex;align-items:center;gap:${cellGap}px;">
+            <div style="width:80px;flex-shrink:0;"></div>
+            <div style="display:flex;gap:${cellGap}px;">${headerCells}</div>
+          </div>
+          ${dateNumRow}
+          ${projRows}
+        </div>
+       </div>
+       <p style="font-size:11px;color:var(--text3);margin-top:10px;">色が濃いほど記録時間が多い（目安：${maxHrs}h以上で最大）</p>`
+    : '<div class="empty">プロジェクトがありません</div>';
+}
+
+// ---- End 時間管理 ----
 
 function openProject(id) {
   currentProjectId = id;
@@ -655,6 +1093,7 @@ function deleteProject(id) {
   if(!confirm('このプロジェクトを削除しますか？')) return;
   projects = projects.filter(p => p.id !== id);
   save(); render();
+  renderTimeMgmt();
 }
 
 function loadContextTab(p) {
@@ -694,6 +1133,8 @@ function saveMdText() {
 
 function showAddModal() {
   const overlay = document.getElementById('modal-overlay');
+  const currentTotal = projects.reduce((s, p) => s + (p.effortRate || 0), 0);
+  const suggested = Math.max(0, 100 - currentTotal);
   document.getElementById('modal-body').innerHTML = `
     <div style="font-size:15px;font-weight:600;color:var(--text);">新しいプロジェクト</div>
     <div class="field-gap">
@@ -701,6 +1142,10 @@ function showAddModal() {
       <div class="form-col"><span class="form-label">概要</span><input type="text" id="new-desc" placeholder="（任意）" /></div>
       <div class="form-col"><span class="form-label">ステータス</span>
         <select id="new-status"><option>進行中</option><option>計画中</option><option>完了</option><option>保留</option></select>
+      </div>
+      <div class="form-col"><span class="form-label">エフォート率（%）</span>
+        <input type="number" id="new-effort" min="0" max="120" value="${suggested}" placeholder="0" />
+        <span style="font-size:11px;color:var(--text3);">現在の合計: ${currentTotal}%　残り: ${100 - currentTotal}%</span>
       </div>
       <div class="form-col"><span class="form-label">カラー</span>
         <div class="color-row" id="color-row">
@@ -728,6 +1173,7 @@ function showEditProjectModal(id) {
   const p = projects.find(x => x.id === id);
   if(!p) return;
   const statuses = ['進行中','計画中','完了','保留'];
+  const currentTotal = projects.reduce((s, q) => s + (q.id === id ? 0 : (q.effortRate || 0)), 0);
   document.getElementById('modal-body').innerHTML = `
     <div style="font-size:15px;font-weight:600;color:var(--text);">プロジェクトを編集</div>
     <div class="field-gap">
@@ -735,6 +1181,10 @@ function showEditProjectModal(id) {
       <div class="form-col"><span class="form-label">概要</span><input type="text" id="edit-desc" value="${esc(p.desc || '')}" placeholder="（任意）" /></div>
       <div class="form-col"><span class="form-label">ステータス</span>
         <select id="edit-status">${statuses.map(s => `<option ${s===p.status?'selected':''}>${s}</option>`).join('')}</select>
+      </div>
+      <div class="form-col"><span class="form-label">エフォート率（%）</span>
+        <input type="number" id="edit-effort" min="0" max="120" value="${p.effortRate || 0}" />
+        <span style="font-size:11px;color:var(--text3);">他プロジェクトの合計: ${currentTotal}%</span>
       </div>
       <div class="form-col"><span class="form-label">カラー</span>
         <div class="color-row" id="edit-color-row">
@@ -764,9 +1214,10 @@ function saveEditProject(id) {
   p.name = name;
   p.desc = document.getElementById('edit-desc').value.trim();
   p.status = document.getElementById('edit-status').value;
+  p.effortRate = Math.max(0, Math.min(120, parseInt(document.getElementById('edit-effort').value) || 0));
   const sel = document.querySelector('#edit-color-row .color-dot.selected');
   if(sel) p.color = sel.dataset.color;
-  save(); closeModal(); render();
+  save(); closeModal(); render(); renderTimeMgmt();
 }
 
 function addProject() {
@@ -774,12 +1225,13 @@ function addProject() {
   if(!name) return;
   const sel = document.querySelector('#color-row .color-dot.selected');
   const color = sel ? sel.dataset.color : COLORS[0];
-  projects.push({ id: Date.now(), name, desc: document.getElementById('new-desc').value.trim(), status: document.getElementById('new-status').value, color, tasks: [], mdContent: '', mdFilename: '', mdText: '' });
-  save(); closeModal(); render();
+  const effortRate = Math.max(0, Math.min(120, parseInt(document.getElementById('new-effort')?.value) || 0));
+  projects.push({ id: Date.now(), name, desc: document.getElementById('new-desc').value.trim(), status: document.getElementById('new-status').value, color, effortRate, tasks: [], mdContent: '', mdFilename: '', mdText: '' });
+  save(); closeModal(); render(); renderTimeMgmt();
 }
 
 function exportData() {
-  const blob = new Blob([JSON.stringify({ projects, version: 2, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ projects, settings, dailyLogs, version: 3, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = `project-manager-${new Date().toISOString().slice(0,10)}.json`; a.click();
 }
@@ -789,7 +1241,14 @@ async function importData(e) {
   try {
     const text = await file.text();
     const data = JSON.parse(text);
-    if(data.projects) { projects = data.projects; save(); render(); alert('インポートしました。'); }
+    if(data.projects) {
+      projects = data.projects;
+      if(data.settings) settings = { ...settings, ...data.settings };
+      if(data.dailyLogs) dailyLogs = data.dailyLogs;
+      save(); saveSettings(); saveLogs();
+      render(); renderTimeMgmt();
+      alert('インポートしました。');
+    }
   } catch(err) { alert('ファイルの読み込みに失敗しました。'); }
   e.target.value = '';
 }
