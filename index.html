@@ -413,6 +413,7 @@ let projects = [], currentProjectId = null, editingTaskId = null;
 let settings = { weeklyHours: 40 };
 let dailyLogs = []; // [{ date:'2026-05-18', projectId:1, hours:1.5 }, ...]
 let viewOffset = 0, viewMode = 'week'; // 実績・振り返りの表示期間
+let autoSyncTimer = null, isAutoSyncing = false;
 const COLORS = ['#1D9E75','#378ADD','#D85A30','#BA7517','#7F77DD','#D4537E','#639922','#533F6B'];
 
 // ---- GitHub Gist Sync ----
@@ -490,6 +491,8 @@ async function loadFromGist() {
   if(!token) { setGistStatus('⚠ GitHub Tokenが設定されていません', '#A32D2D'); return; }
   if(!gistId) { setGistStatus('⚠ Gist IDが設定されていません。先に保存してください', '#A32D2D'); return; }
   setGistStatus('読み込み中...', 'var(--text2)');
+  if(autoSyncTimer) { clearTimeout(autoSyncTimer); autoSyncTimer = null; }
+  isAutoSyncing = true;
   try {
     const res = await fetch(`https://api.github.com/gists/${gistId}`, {
       headers: { 'Authorization': `token ${token}` }
@@ -509,6 +512,7 @@ async function loadFromGist() {
       setGistStatus(`✓ Gistから読み込みました（${now}）`, '#1D9E75');
     }
   } catch(e) { setGistStatus(`エラー: ${e.message}`, '#A32D2D'); }
+  finally { isAutoSyncing = false; }
 }
 
 async function syncGist() { await saveToGist(); }
@@ -527,6 +531,8 @@ function load() {
   if(githubToken) document.getElementById('github-token-input').value = githubToken;
   if(gistId) document.getElementById('gist-id-input').value = gistId;
   updateSyncBtn();
+  // 起動時に Gist から自動読み込み（認証情報がある場合）
+  autoLoadFromGist();
 }
 
 function getSamples() {
@@ -539,9 +545,21 @@ function getSamples() {
   ];
 }
 
-function save() { try { localStorage.setItem('pm_projects', JSON.stringify(projects)); } catch(e) {} }
-function saveSettings() { try { localStorage.setItem('pm_settings', JSON.stringify(settings)); } catch(e) {} }
-function saveLogs() { try { localStorage.setItem('pm_logs', JSON.stringify(dailyLogs)); } catch(e) {} }
+function save() { try { localStorage.setItem('pm_projects', JSON.stringify(projects)); } catch(e) {} scheduleAutoSave(); }
+function saveSettings() { try { localStorage.setItem('pm_settings', JSON.stringify(settings)); } catch(e) {} scheduleAutoSave(); }
+function saveLogs() { try { localStorage.setItem('pm_logs', JSON.stringify(dailyLogs)); } catch(e) {} scheduleAutoSave(); }
+
+function scheduleAutoSave() {
+  if(!getGithubToken()) return;
+  if(isAutoSyncing) return;
+  if(autoSyncTimer) clearTimeout(autoSyncTimer);
+  autoSyncTimer = setTimeout(() => { autoSyncTimer = null; saveToGist(); }, 2500);
+}
+
+async function autoLoadFromGist() {
+  if(!getGithubToken() || !getGistId()) return;
+  await loadFromGist();
+}
 
 function render() { renderStats(); renderProjectGrid(); }
 
