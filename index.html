@@ -269,7 +269,7 @@
             <span class="card-title">今日の記録</span>
             <span id="today-label" style="font-size:12px;color:var(--text2);"></span>
           </div>
-          <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">今日使った時間を30分単位で記録します。</p>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">タスク完了時に記録した時間が表示されます。</p>
           <div id="daily-log-list"></div>
         </div>
 
@@ -840,25 +840,27 @@ function renderDailyLog() {
   const el = document.getElementById('today-label');
   if(el) el.textContent = label;
 
+  const listEl = document.getElementById('daily-log-list');
+  if(!listEl) return;
+  if(!projects.length) { listEl.innerHTML = '<div class="empty">プロジェクトがありません</div>'; return; }
+
   const todayTotal = projects.reduce((s, p) => s + getLogHours(today, p.id), 0);
-  const rows = projectsByEffortRate().map(p => {
-    const hrs = getLogHours(today, p.id);
-    return `<div class="log-row">
+  const rows = projectsByEffortRate()
+    .map(p => ({ p, hrs: getLogHours(today, p.id) }))
+    .filter(x => x.hrs > 0)
+    .map(({p, hrs}) => `<div class="log-row">
       <div class="log-dot" style="background:${p.color}"></div>
       <div class="log-name">${esc(p.name)}</div>
-      <button class="log-btn" onclick="addLog(${p.id}, -0.5)" title="-30分">－</button>
-      <div class="log-hours-display" id="log-hrs-${p.id}">${hrs > 0 ? hrs + 'h' : '—'}</div>
-      <button class="log-btn log-btn-plus" onclick="addLog(${p.id}, 0.5)" title="+30分">＋</button>
-    </div>`;
-  }).join('');
+      <div class="log-hours-display" id="log-hrs-${p.id}">${hrs}h</div>
+    </div>`).join('');
+
+  if(!rows) { listEl.innerHTML = '<div class="empty">今日はまだ記録がありません</div>'; return; }
 
   const totalRow = `<div class="log-total-row">
-    <span>今日の合計</span>
-    <span class="log-total-num">${todayTotal > 0 ? todayTotal + 'h' : '—'}</span>
+    <span>合計</span>
+    <span class="log-total-num">${todayTotal}h</span>
   </div>`;
-
-  const listEl = document.getElementById('daily-log-list');
-  if(listEl) listEl.innerHTML = projects.length ? rows + totalRow : '<div class="empty">プロジェクトがありません</div>';
+  listEl.innerHTML = rows + totalRow;
 }
 
 function renderWeeklyDashboard() {
