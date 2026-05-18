@@ -263,6 +263,16 @@
           <div id="effort-list"></div>
         </div>
 
+        <!-- 今週のプラン -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">今週のプラン</span>
+            <span id="weekly-plan-range" style="font-size:12px;color:var(--text2);"></span>
+          </div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">今週、各プロジェクトに何時間使うかを設定します。デフォルトはエフォート率と週稼働時間から自動計算されます。</p>
+          <div id="weekly-plan-list"></div>
+        </div>
+
         <!-- 今日の記録 -->
         <div class="card">
           <div class="card-header">
@@ -436,6 +446,7 @@
 let projects = [], currentProjectId = null, editingTaskId = null, recordingTaskId = null;
 let settings = { weeklyHours: 40 };
 let dailyLogs = []; // [{ date:'2026-05-18', projectId:1, hours:1.5 }, ...]
+let weeklyPlans = []; // [{ weekStart:'2026-05-19', projectId:1, targetHours:16 }, ...]
 let viewOffset = 0, viewMode = 'week'; // 実績・振り返りの表示期間
 let autoSyncTimer = null, isAutoSyncing = false;
 const COLORS = ['#1D9E75','#378ADD','#D85A30','#BA7517','#7F77DD','#D4537E','#639922','#533F6B'];
@@ -478,8 +489,8 @@ async function saveToGist() {
   const token = getGithubToken();
   if(!token) { setGistStatus('⚠ GitHub Tokenが設定されていません', '#A32D2D'); return; }
   setGistStatus('保存中...', 'var(--text2)');
-  // version 3: projects + settings + dailyLogs
-  const payload = JSON.stringify({ projects, settings, dailyLogs, version: 3, savedAt: new Date().toISOString() }, null, 2);
+  // version 3: projects + settings + dailyLogs + weeklyPlans
+  const payload = JSON.stringify({ projects, settings, dailyLogs, weeklyPlans, version: 3, savedAt: new Date().toISOString() }, null, 2);
   const gistId = getGistId();
   try {
     let res, data;
@@ -530,7 +541,8 @@ async function loadFromGist() {
       // version 3: settings と dailyLogs も読み込む（旧バージョンは undefined → デフォルト維持）
       if(parsed.settings) settings = { ...settings, ...parsed.settings };
       if(parsed.dailyLogs) dailyLogs = parsed.dailyLogs;
-      save(); saveSettings(); saveLogs();
+      if(parsed.weeklyPlans) weeklyPlans = parsed.weeklyPlans;
+      save(); saveSettings(); saveLogs(); saveWeeklyPlans();
       render(); renderTimeMgmt();
       const now = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'});
       setGistStatus(`✓ Gistから読み込みました（${now}）`, '#1D9E75');
@@ -546,6 +558,7 @@ function load() {
   try { const d = localStorage.getItem('pm_projects'); if(d) projects = JSON.parse(d); } catch(e) { projects = []; }
   try { const d = localStorage.getItem('pm_settings'); if(d) settings = { ...settings, ...JSON.parse(d) }; } catch(e) {}
   try { const d = localStorage.getItem('pm_logs'); if(d) dailyLogs = JSON.parse(d); } catch(e) {}
+  try { const d = localStorage.getItem('pm_weekly_plans'); if(d) weeklyPlans = JSON.parse(d); } catch(e) { weeklyPlans = []; }
   if(!projects.length) { projects = getSamples(); save(); }
   render();
   renderTimeMgmt();
@@ -572,6 +585,7 @@ function getSamples() {
 function save() { try { localStorage.setItem('pm_projects', JSON.stringify(projects)); } catch(e) {} scheduleAutoSave(); }
 function saveSettings() { try { localStorage.setItem('pm_settings', JSON.stringify(settings)); } catch(e) {} scheduleAutoSave(); }
 function saveLogs() { try { localStorage.setItem('pm_logs', JSON.stringify(dailyLogs)); } catch(e) {} scheduleAutoSave(); }
+function saveWeeklyPlans() { try { localStorage.setItem('pm_weekly_plans', JSON.stringify(weeklyPlans)); } catch(e) {} scheduleAutoSave(); }
 
 function scheduleAutoSave() {
   if(!getGithubToken()) return;
@@ -792,6 +806,7 @@ function saveWeeklyHours() {
 
 function renderTimeMgmt() {
   renderEffortList();
+  renderWeeklyPlan();
   renderDailyLog();
   updatePeriodNav();
   renderWeeklyDashboard();
@@ -807,6 +822,86 @@ function renderTimeMgmt() {
 
 function projectsByEffortRate() {
   return [...projects].sort((a, b) => (b.effortRate || 0) - (a.effortRate || 0));
+}
+
+function getWeekStart(date) {
+  return getWeekDates(date)[0];
+}
+
+function getWeekPlan(projectId, weekStart) {
+  return weeklyPlans.find(p => p.projectId === projectId && p.weekStart === weekStart) || null;
+}
+
+function getDefaultWeekTarget(projectId) {
+  const proj = projects.find(p => p.id === projectId);
+  if(!proj) return 0;
+  const wh = settings.weeklyHours || 40;
+  return Math.round((proj.effortRate || 0) * wh / 100 * 10) / 10;
+}
+
+function getEffectiveTarget(projectId, weekStart) {
+  const plan = getWeekPlan(projectId, weekStart);
+  if(plan) return plan.targetHours;
+  return getDefaultWeekTarget(projectId);
+}
+
+function saveWeekPlan(projectId, weekStart, hours) {
+  const val = parseFloat(hours);
+  const idx = weeklyPlans.findIndex(p => p.projectId === projectId && p.weekStart === weekStart);
+  if(isNaN(val) || val < 0) {
+    if(idx >= 0) { weeklyPlans.splice(idx, 1); saveWeeklyPlans(); }
+    return;
+  }
+  if(idx >= 0) weeklyPlans[idx].targetHours = val;
+  else weeklyPlans.push({ projectId, weekStart, targetHours: val });
+  saveWeeklyPlans();
+}
+
+function updateWeekPlanTotal() {
+  const wh = settings.weeklyHours || 40;
+  const weekStart = getWeekStart(new Date());
+  const total = projects.reduce((sum, p) => sum + getEffectiveTarget(p.id, weekStart), 0);
+  const totalRounded = Math.round(total * 10) / 10;
+  const ok = Math.abs(totalRounded - wh) < 0.01;
+  const el = document.getElementById('weekly-plan-total');
+  if(el) {
+    el.textContent = `${totalRounded}h / 週${wh}h設定${ok ? ' ✓' : ''}`;
+    el.className = `effort-total-num ${ok ? 'effort-total-ok' : ''}`;
+  }
+}
+
+function renderWeeklyPlan() {
+  const wh = settings.weeklyHours || 40;
+  const weekStart = getWeekStart(new Date());
+  // ヘッダー日付範囲
+  const monday = new Date(weekStart);
+  const sunday = new Date(weekStart);
+  sunday.setDate(sunday.getDate() + 6);
+  const rangeEl = document.getElementById('weekly-plan-range');
+  if(rangeEl) rangeEl.textContent = `${monday.getMonth()+1}/${monday.getDate()}（月）〜 ${sunday.getMonth()+1}/${sunday.getDate()}（日）`;
+
+  const projs = projectsByEffortRate();
+  const rows = projs.map(p => {
+    const value = getEffectiveTarget(p.id, weekStart);
+    return `<div class="effort-row">
+      <div class="effort-dot" style="background:${p.color}"></div>
+      <div class="effort-name">${esc(p.name)}</div>
+      <input class="effort-pct-input" type="number" min="0" step="0.5" value="${value}"
+        oninput="saveWeekPlan(${p.id}, '${weekStart}', this.value); updateWeekPlanTotal()"
+        style="width:62px;text-align:center;padding:5px 8px;" autocomplete="off" />
+      <span style="font-size:13px;color:var(--text2);">h</span>
+    </div>`;
+  }).join('');
+
+  const total = projs.reduce((s, p) => s + getEffectiveTarget(p.id, weekStart), 0);
+  const totalRounded = Math.round(total * 10) / 10;
+  const ok = Math.abs(totalRounded - wh) < 0.01;
+  const totalRow = `<div class="effort-total-row">
+    <span style="color:var(--text2);font-size:13px;">合計</span>
+    <span id="weekly-plan-total" class="effort-total-num ${ok ? 'effort-total-ok' : ''}">${totalRounded}h / 週${wh}h設定${ok ? ' ✓' : ''}</span>
+  </div>`;
+  const el = document.getElementById('weekly-plan-list');
+  if(el) el.innerHTML = projs.length ? rows + totalRow : '<div class="empty">プロジェクトがありません</div>';
 }
 
 function renderEffortList() {
@@ -865,8 +960,12 @@ function renderDailyLog() {
 
 function renderWeeklyDashboard() {
   updatePeriodNav();
+  const periodDates = getPeriodDates();
+  const weekStart = viewMode === 'week' ? periodDates[0] : null;
   const rows = projectsByEffortRate().map(p => {
-    const target = Math.round(getPeriodTargetHours(p) * 10) / 10;
+    const target = viewMode === 'week'
+      ? Math.round(getEffectiveTarget(p.id, weekStart) * 10) / 10
+      : Math.round(getPeriodTargetHours(p) * 10) / 10;
     const actual = Math.round(getPeriodHours(p.id) * 10) / 10;
     const barMax = Math.max(target * 1.25, actual, 0.5);
     const mainWidth = target > 0
@@ -1442,7 +1541,7 @@ function addProject() {
 }
 
 function exportData() {
-  const blob = new Blob([JSON.stringify({ projects, settings, dailyLogs, version: 3, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ projects, settings, dailyLogs, weeklyPlans, version: 3, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = `project-manager-${new Date().toISOString().slice(0,10)}.json`; a.click();
 }
@@ -1456,7 +1555,8 @@ async function importData(e) {
       projects = data.projects;
       if(data.settings) settings = { ...settings, ...data.settings };
       if(data.dailyLogs) dailyLogs = data.dailyLogs;
-      save(); saveSettings(); saveLogs();
+      if(data.weeklyPlans) weeklyPlans = data.weeklyPlans;
+      save(); saveSettings(); saveLogs(); saveWeeklyPlans();
       render(); renderTimeMgmt();
       alert('インポートしました。');
     }
