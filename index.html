@@ -371,6 +371,13 @@
                 </select>
               </div>
             </div>
+            <div class="form-col">
+              <span class="form-label">見積もり時間</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <input type="number" id="task-estimated" min="0.5" step="0.5" placeholder="見積もり（任意）" />
+                <span style="font-size:12px;color:var(--text2);">h</span>
+              </div>
+            </div>
             <button class="primary" onclick="addTask()"><i class="ti ti-plus"></i> タスクを追加</button>
           </div>
         </div>
@@ -426,7 +433,7 @@
 </div>
 
 <script>
-let projects = [], currentProjectId = null, editingTaskId = null;
+let projects = [], currentProjectId = null, editingTaskId = null, recordingTaskId = null;
 let settings = { weeklyHours: 40 };
 let dailyLogs = []; // [{ date:'2026-05-18', projectId:1, hours:1.5 }, ...]
 let viewOffset = 0, viewMode = 'week'; // 実績・振り返りの表示期間
@@ -631,6 +638,19 @@ function switchMainTab(tab) {
 function refreshTaskListView() {
   if(document.getElementById('panel-tasks-all')?.classList.contains('active')) renderAllTasks();
   else renderTasks();
+}
+
+function renderRecordingArea(t, projectId) {
+  const preset = t.estimatedHours != null ? t.estimatedHours : '';
+  return `<div class="task-record-area" style="margin-top:8px;padding:9px 11px;background:var(--info-bg);border-radius:var(--radius);">
+    <div style="font-size:12px;color:var(--info-text);margin-bottom:6px;">実際にかかった時間は？</div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <input type="number" id="record-hours-${t.id}" min="0.5" step="0.5" value="${preset}" style="width:80px;font-size:13px;padding:5px 8px;" />
+      <span style="font-size:12px;color:var(--text2);">h</span>
+      <button class="small primary" onclick="currentProjectId=${projectId};saveActualHours(${t.id})">記録する</button>
+      <button class="small" onclick="cancelRecording()">スキップ</button>
+    </div>
+  </div>`;
 }
 
 function refreshAfterTaskChange() {
@@ -1026,6 +1046,7 @@ function renderTasks() {
               <option value="doing" ${t.status==='doing'?'selected':''}>進行中</option>
               <option value="done" ${t.status==='done'?'selected':''}>完了</option>
             </select>
+            <input type="number" id="edit-task-estimated-${t.id}" min="0.5" step="0.5" placeholder="見積h" value="${t.estimatedHours != null ? t.estimatedHours : ''}" style="width:78px;font-size:12px;padding:4px 8px;" />
             <button class="small primary" onclick="saveTaskEdit(${t.id})"><i class="ti ti-check"></i> 保存</button>
             <button class="small" onclick="cancelTaskEdit()">キャンセル</button>
           </div>
@@ -1035,6 +1056,7 @@ function renderTasks() {
     const hasMemo = !!(t.memo && t.memo.trim());
     const links = hasMemo ? extractUrls(t.memo) : [];
     const linksHtml = links.length ? `<div class="task-memo-links">${links.map(u => `<a class="task-memo-link" href="${esc(u)}" target="_blank" rel="noopener"><span class="memo-dot"></span>${esc(u)}</a>`).join('')}</div>` : '';
+    const recordHtml = recordingTaskId === t.id ? renderRecordingArea(t, currentProjectId) : '';
     return `<div class="task-item" id="task-item-${t.id}">
       <div class="task-status-btn ${t.status}" onclick="cycleTaskStatus(${t.id})" title="クリックでステータス変更"></div>
       <div class="task-body">
@@ -1042,12 +1064,15 @@ function renderTasks() {
         <div class="task-meta">
           <span class="badge ${prB[t.priority]}">${prL[t.priority]}</span>
           <span class="badge ${stB[t.status]}">${stL[t.status]}</span>
+          ${t.estimatedHours != null ? `<span class="badge badge-mid">見積 ${t.estimatedHours}h</span>` : ''}
+          ${(t.status === 'done' && t.actualHours != null) ? `<span class="badge badge-done">実績 ${t.actualHours}h</span>` : ''}
           ${hasMemo ? '<span class="memo-indicator" style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px;"><i class="ti ti-notes" style="font-size:11px;"></i>メモあり</span>' : ''}
         </div>
         <div class="task-memo-area" id="memo-area-${t.id}">
           <textarea class="task-memo-textarea" id="memo-text-${t.id}" placeholder="メモ・URLなど..." oninput="saveMemo(${t.id})">${esc(t.memo || '')}</textarea>
           ${linksHtml}
         </div>
+        ${recordHtml}
       </div>
       <button class="task-memo-btn ${hasMemo?'has-memo':''}" id="memo-btn-${t.id}" onclick="toggleMemo(${t.id})" title="メモ"><i class="ti ti-notes"></i></button>
       <button class="task-edit-btn" onclick="startTaskEdit(${t.id})" title="編集"><i class="ti ti-pencil"></i></button>
@@ -1101,6 +1126,7 @@ function renderAllTasks() {
               <option value="doing" ${t.status==='doing'?'selected':''}>進行中</option>
               <option value="done" ${t.status==='done'?'selected':''}>完了</option>
             </select>
+            <input type="number" id="edit-task-estimated-${t.id}" min="0.5" step="0.5" placeholder="見積h" value="${t.estimatedHours != null ? t.estimatedHours : ''}" style="width:78px;font-size:12px;padding:4px 8px;" />
             <button class="small primary" onclick="currentProjectId=${p.id};saveTaskEdit(${t.id})"><i class="ti ti-check"></i> 保存</button>
             <button class="small" onclick="cancelTaskEdit()">キャンセル</button>
           </div>
@@ -1111,6 +1137,7 @@ function renderAllTasks() {
     const links = hasMemo ? extractUrls(t.memo) : [];
     const linksHtml = links.length ? `<div class="task-memo-links">${links.map(u => `<a class="task-memo-link" href="${esc(u)}" target="_blank" rel="noopener"><span class="memo-dot"></span>${esc(u)}</a>`).join('')}</div>` : '';
     const projBadge = `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg2);color:var(--text2);font-weight:500;cursor:pointer;" onclick="event.stopPropagation();openProject(${p.id})" title="プロジェクトを開く"><span style="width:7px;height:7px;border-radius:50%;background:${p.color};"></span>${esc(p.name)}</span>`;
+    const recordHtml = recordingTaskId === t.id ? renderRecordingArea(t, p.id) : '';
     return `<div class="task-item" id="task-item-${t.id}">
       <div class="task-status-btn ${t.status}" onclick="currentProjectId=${p.id};cycleTaskStatus(${t.id})" title="クリックでステータス変更"></div>
       <div class="task-body">
@@ -1118,6 +1145,8 @@ function renderAllTasks() {
         <div class="task-meta">
           <span class="badge ${prB[t.priority]}">${prL[t.priority]}</span>
           <span class="badge ${stB[t.status]}">${stL[t.status]}</span>
+          ${t.estimatedHours != null ? `<span class="badge badge-mid">見積 ${t.estimatedHours}h</span>` : ''}
+          ${(t.status === 'done' && t.actualHours != null) ? `<span class="badge badge-done">実績 ${t.actualHours}h</span>` : ''}
           ${projBadge}
           ${hasMemo ? '<span class="memo-indicator" style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px;"><i class="ti ti-notes" style="font-size:11px;"></i>メモあり</span>' : ''}
         </div>
@@ -1125,6 +1154,7 @@ function renderAllTasks() {
           <textarea class="task-memo-textarea" id="memo-text-${t.id}" placeholder="メモ・URLなど..." oninput="currentProjectId=${p.id};saveMemo(${t.id})">${esc(t.memo || '')}</textarea>
           ${linksHtml}
         </div>
+        ${recordHtml}
       </div>
       <button class="task-memo-btn ${hasMemo?'has-memo':''}" id="memo-btn-${t.id}" onclick="toggleMemo(${t.id})" title="メモ"><i class="ti ti-notes"></i></button>
       <button class="task-edit-btn" onclick="currentProjectId=${p.id};startTaskEdit(${t.id})" title="編集"><i class="ti ti-pencil"></i></button>
@@ -1140,8 +1170,13 @@ function addTask() {
   const p = projects.find(x => x.id === currentProjectId);
   if(!p) return;
   if(!p.tasks) p.tasks = [];
-  p.tasks.push({ id: Date.now(), text, priority: document.getElementById('task-priority').value, status: document.getElementById('task-status-sel').value, memo: '' });
+  const estInput = document.getElementById('task-estimated');
+  const estVal = estInput?.value;
+  const task = { id: Date.now(), text, priority: document.getElementById('task-priority').value, status: document.getElementById('task-status-sel').value, memo: '' };
+  if(estVal !== '' && estVal != null && !isNaN(parseFloat(estVal))) task.estimatedHours = parseFloat(estVal);
+  p.tasks.push(task);
   document.getElementById('task-input').value = '';
+  if(estInput) estInput.value = '';
   save(); refreshAfterTaskChange();
 }
 
@@ -1149,7 +1184,13 @@ function cycleTaskStatus(taskId) {
   const p = projects.find(x => x.id === currentProjectId);
   const t = p?.tasks?.find(x => x.id === taskId);
   if(!t) return;
+  const wasDone = t.status === 'done';
   t.status = {todo:'doing',doing:'done',done:'todo'}[t.status];
+  if(t.status === 'done' && !wasDone && t.actualHours == null) {
+    recordingTaskId = taskId;
+  } else if(t.status !== 'done' && recordingTaskId === taskId) {
+    recordingTaskId = null;
+  }
   save(); refreshAfterTaskChange();
 }
 
@@ -1169,11 +1210,46 @@ function saveTaskEdit(taskId) {
   if(!t) return;
   const text = document.getElementById(`edit-task-text-${taskId}`)?.value.trim();
   if(!text) return;
+  const wasDone = t.status === 'done';
   t.text = text;
   t.priority = document.getElementById(`edit-task-priority-${taskId}`).value;
   t.status = document.getElementById(`edit-task-status-${taskId}`).value;
+  const estVal = document.getElementById(`edit-task-estimated-${taskId}`)?.value;
+  if(estVal === '' || estVal == null) delete t.estimatedHours;
+  else if(!isNaN(parseFloat(estVal))) t.estimatedHours = parseFloat(estVal);
+  if(t.status === 'done' && !wasDone && t.actualHours == null) {
+    recordingTaskId = taskId;
+  } else if(t.status !== 'done' && recordingTaskId === taskId) {
+    recordingTaskId = null;
+  }
   editingTaskId = null;
   save(); refreshAfterTaskChange();
+}
+
+function saveActualHours(taskId) {
+  const p = projects.find(x => x.id === currentProjectId);
+  const t = p?.tasks?.find(x => x.id === taskId);
+  if(!t) return;
+  const raw = document.getElementById(`record-hours-${taskId}`)?.value;
+  const val = parseFloat(raw);
+  if(!(val > 0)) return;
+  t.actualHours = val;
+  // dailyLogs に加算（addLog のロジックに倣う）
+  const date = getTodayStr();
+  const idx = dailyLogs.findIndex(l => l.date === date && l.projectId === currentProjectId);
+  if(idx >= 0) {
+    dailyLogs[idx].hours = Math.round((dailyLogs[idx].hours + val) * 10) / 10;
+  } else {
+    dailyLogs.push({ date, projectId: currentProjectId, hours: val });
+  }
+  recordingTaskId = null;
+  save(); saveLogs();
+  refreshAfterTaskChange();
+}
+
+function cancelRecording() {
+  recordingTaskId = null;
+  refreshTaskListView();
 }
 
 function toggleMemo(taskId) {
