@@ -4,35 +4,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>プロジェクトマネージャー</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1a' rx='18'/><text x='50' y='46' font-family='system-ui,-apple-system,sans-serif' font-size='40' font-weight='700' fill='white' text-anchor='middle' dominant-baseline='central'>PM</text><rect x='22' y='82' width='56' height='6' fill='%231D9E75' rx='3'/></svg>">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="PJ Manager">
-<meta name="theme-color" content="#1c1c1a">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
   :root {
-    --bg: #ffffff; --bg2: #f5f5f4; --bg3: #efefed;
-    --text: #1a1a18; --text2: #6b6b68; --text3: #a0a09d;
-    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
-    --radius: 8px; --radius-lg: 12px;
-    --info-bg: #E6F1FB; --info-text: #185FA5;
+    --bg: #ffffff;
+    --bg2: #f5f5f4;
+    --bg3: #efefed;
+    --text: #1a1a18;
+    --text2: #6b6b68;
+    --text3: #a0a09d;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --radius: 8px;
+    --radius-lg: 12px;
+    --info-bg: #E6F1FB;
+    --info-text: #185FA5;
     --font: system-ui, -apple-system, 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #1c1c1a; --bg2: #252523; --bg3: #2e2e2c;
-      --text: #f0efe8; --text2: #a0a09d; --text3: #6b6b68;
-      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
-      --info-bg: #0c2a44; --info-text: #85B7EB;
+      --bg: #1c1c1a;
+      --bg2: #252523;
+      --bg3: #2e2e2c;
+      --text: #f0efe8;
+      --text2: #a0a09d;
+      --text3: #6b6b68;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.2);
+      --info-bg: #0c2a44;
+      --info-text: #85B7EB;
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: var(--font); background: var(--bg3); color: var(--text); min-height: 100vh; }
   .app { max-width: 860px; margin: 0 auto; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; box-shadow: 0 0 0 0.5px var(--border); }
-  .header { padding: 1rem 1.5rem; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 12px; }
-  .header-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
-  .header-title { font-size: 15px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .header { padding: 1rem 1.5rem; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .header-title { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tabs { display: flex; border-bottom: 0.5px solid var(--border); overflow-x: auto; scrollbar-width: none; }
   .tabs::-webkit-scrollbar { display: none; }
   .tab { padding: 10px 16px; font-size: 13px; cursor: pointer; color: var(--text2); border: none; background: transparent; border-bottom: 2px solid transparent; transition: all 0.15s; display: flex; align-items: center; gap: 6px; white-space: nowrap; font-family: var(--font); }
@@ -48,7 +56,7 @@
   .stat { background: var(--bg2); border-radius: var(--radius); padding: 10px 12px; text-align: center; }
   .stat-num { font-size: 22px; font-weight: 600; color: var(--text); }
   .stat-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
-  .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+  .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
   .project-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.15rem; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
   .project-card:hover { border-color: var(--border2); background: var(--bg2); }
   .project-card-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
@@ -60,7 +68,7 @@
   .progress-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
   .task-count { font-size: 11px; color: var(--text3); margin-top: 6px; }
   .md-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 2px 7px; border-radius: 10px; background: var(--info-bg); color: var(--info-text); margin-top: 6px; }
-  .add-project-card { background: var(--bg2); border: 1.5px dashed var(--border2); border-radius: var(--radius-lg); padding: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--text2); min-height: 100px; transition: all 0.15s; font-family: var(--font); }
+  .add-project-card { background: var(--bg2); border: 0.5px dashed var(--border2); border-radius: var(--radius-lg); padding: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--text2); min-height: 100px; transition: all 0.15s; font-family: var(--font); }
   .add-project-card:hover { border-color: var(--text2); color: var(--text); }
   input, textarea, select { width: 100%; padding: 8px 12px; font-size: 13px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg2); color: var(--text); font-family: var(--font); outline: none; transition: border-color 0.15s; }
   input:focus, textarea:focus, select:focus { border-color: var(--border2); background: var(--bg); }
@@ -70,14 +78,9 @@
   button:active { transform: scale(0.98); }
   button.primary { background: var(--text); color: var(--bg); border-color: transparent; }
   button.primary:hover { opacity: 0.85; }
-  button.danger-btn { color: #A32D2D; border-color: #F7C1C1; }
-  button.danger-btn:hover { background: #FCEBEB; }
+  button.danger { color: #A32D2D; border-color: #F7C1C1; }
+  button.danger:hover { background: #FCEBEB; }
   button.small { padding: 4px 10px; font-size: 12px; }
-  button.icon-btn { padding: 4px 7px; border: 0.5px solid transparent; background: transparent; color: var(--text3); border-radius: var(--radius); }
-  button.icon-btn:hover { background: var(--bg2); color: var(--text); }
-  button.icon-btn.danger:hover { color: #A32D2D; border-color: #F7C1C1; }
-  .project-card-actions { display: flex; gap: 2px; flex-shrink: 0; }
-  .back-btn { display: flex; align-items: center; gap: 4px; font-size: 13px; flex-shrink: 0; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .form-col { display: flex; flex-direction: column; gap: 4px; }
   .form-label { font-size: 12px; color: var(--text2); }
@@ -92,7 +95,7 @@
   .task-body { flex: 1; min-width: 0; }
   .task-text { font-size: 13px; color: var(--text); line-height: 1.5; }
   .task-text.done { text-decoration: line-through; color: var(--text3); }
-  .task-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .task-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
   .badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500; }
   .badge-high { background: #FCEBEB; color: #A32D2D; }
   .badge-mid { background: #FAEEDA; color: #854F0B; }
@@ -100,37 +103,31 @@
   .badge-doing { background: #E6F1FB; color: #185FA5; }
   .badge-todo { background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border); }
   .badge-done { background: #E1F5EE; color: #0F6E56; }
-  .task-action { color: var(--text3); cursor: pointer; font-size: 13px; opacity: 0; transition: opacity 0.15s; padding: 3px 5px; flex-shrink: 0; background: none; border: none; border-radius: var(--radius); }
-  .task-item:hover .task-action { opacity: 1; }
-  .task-action:hover { background: var(--bg); color: var(--text); }
-  .task-action.danger:hover { background: var(--bg); color: #A32D2D; }
-  .task-edit-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
-  .task-edit-row select { width: auto; font-size: 12px; padding: 4px 8px; }
-  .task-item.editing { background: var(--bg); border-color: var(--border2); }
+  .task-delete { color: var(--text3); cursor: pointer; font-size: 15px; opacity: 0; transition: opacity 0.15s; padding: 0 2px; flex-shrink: 0; background: none; border: none; }
+  .task-item:hover .task-delete { opacity: 1; }
   .md-upload-area { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 1rem; text-align: center; cursor: pointer; transition: all 0.15s; }
   .md-upload-area:hover { border-color: var(--text2); background: var(--bg2); }
   .md-upload-area.has-file { background: var(--info-bg); border-color: #B5D4F4; border-style: solid; }
   .md-preview { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px; font-size: 12px; color: var(--text2); max-height: 150px; overflow-y: auto; font-family: monospace; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+  .ai-messages { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; margin-bottom: 10px; }
+  .ai-msg { padding: 10px 13px; border-radius: var(--radius-lg); font-size: 13px; line-height: 1.65; }
+  .ai-msg.assistant { background: var(--bg2); color: var(--text); border: 0.5px solid var(--border); }
+  .ai-msg.user { background: #E6F1FB; color: #0C447C; align-self: flex-end; max-width: 85%; }
+  .ai-loading { display: flex; gap: 5px; align-items: center; padding: 10px 13px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); animation: bounce 1s infinite; }
+  .dot:nth-child(2) { animation-delay: .15s; }
+  .dot:nth-child(3) { animation-delay: .3s; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+  .quick-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .empty { text-align: center; padding: 2rem; color: var(--text3); font-size: 13px; }
+  .back-btn { display: flex; align-items: center; gap: 4px; font-size: 13px; }
   .color-row { display: flex; gap: 8px; }
   .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2.5px solid transparent; transition: all 0.15s; }
   .color-dot.selected { border-color: var(--text); }
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
-  .modal-box { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; width: min(460px, 90vw); display: flex; flex-direction: column; gap: 14px; }
-  .modal-title { font-size: 15px; font-weight: 600; color: var(--text); }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
-  .empty { text-align: center; padding: 2rem; color: var(--text3); font-size: 13px; }
-  .task-memo-btn { color: var(--text3); cursor: pointer; font-size: 15px; padding: 0 2px; flex-shrink: 0; background: none; border: none; transition: color 0.15s; opacity: 0; }
-  .task-memo-btn.has-memo { opacity: 1; color: var(--info-text); }
-  .task-item:hover .task-memo-btn { opacity: 1; }
-  .task-memo-area { display: none; margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--border); }
-  .task-memo-area.open { display: block; }
-  .task-memo-textarea { width: 100%; padding: 7px 10px; font-size: 12px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: var(--font); outline: none; resize: vertical; min-height: 62px; line-height: 1.6; transition: border-color 0.15s; }
-  .task-memo-textarea:focus { border-color: var(--border2); }
-  .task-memo-textarea::placeholder { color: var(--text3); }
-  .task-memo-links { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
-  .task-memo-link { font-size: 11px; color: var(--info-text); word-break: break-all; display: flex; align-items: center; gap: 4px; text-decoration: none; }
-  .task-memo-link:hover { text-decoration: underline; }
-  .memo-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--info-text); flex-shrink: 0; margin-top: 1px; }
+  .apikey-banner { background: var(--info-bg); border: 0.5px solid #B5D4F4; border-radius: var(--radius); padding: 10px 14px; font-size: 12px; color: var(--info-text); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .apikey-banner input { background: var(--bg); border-color: #B5D4F4; font-size: 12px; padding: 5px 10px; max-width: 320px; flex: 1; }
+  .proj-delete-btn { background: none; border: none; padding: 3px 5px; color: var(--text3); cursor: pointer; font-size: 13px; }
+  .proj-delete-btn:hover { color: #A32D2D; background: #FCEBEB; border-radius: 4px; }
   @media (max-width: 500px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .project-grid { grid-template-columns: 1fr; }
@@ -141,18 +138,26 @@
 </style>
 </head>
 <body>
-<div class="app">
+<div class="app" id="app">
+
   <div class="header">
     <div class="header-left" id="header-left">
-      <i class="ti ti-layout-kanban" style="font-size:18px;color:var(--text2);flex-shrink:0;"></i>
-      <span class="header-title">プロジェクトマネージャー</span>
+      <i class="ti ti-layout-kanban" style="font-size:18px;color:var(--text2)"></i>
+      <span class="header-title" id="header-title">プロジェクトマネージャー</span>
+    </div>
+    <div id="header-actions" style="display:flex;align-items:center;gap:8px;">
+      <span id="sync-status" style="font-size:11px;color:var(--text3);"></span>
+      <button id="sync-btn" onclick="syncGist()" style="display:none;padding:5px 10px;font-size:12px;" title="Gistと同期">
+        <i class="ti ti-cloud-upload"></i> 同期
+      </button>
     </div>
   </div>
 
-  <!-- メインビュー -->
+  <!-- MAIN VIEW -->
   <div id="main-view">
-    <div class="tabs">
+    <div class="tabs" id="main-tabs">
       <button class="tab active" onclick="switchMainTab('projects')"><i class="ti ti-folder"></i>プロジェクト</button>
+      <button class="tab" onclick="switchMainTab('ai')"><i class="ti ti-message"></i>AIマネージャー</button>
       <button class="tab" onclick="switchMainTab('settings')"><i class="ti ti-settings"></i>設定</button>
     </div>
     <div class="content">
@@ -160,39 +165,103 @@
         <div class="stats-row" id="stats-row"></div>
         <div class="project-grid" id="project-grid"></div>
       </div>
+      <div class="panel" id="panel-ai">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">AIマネージャーに相談</span>
+            <button onclick="clearChat()"><i class="ti ti-trash"></i> クリア</button>
+          </div>
+          <div class="ai-messages" id="ai-messages"></div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="ai-input" placeholder="全プロジェクトについて相談..." onkeydown="if(event.key==='Enter')sendAI()" />
+            <button class="primary" onclick="sendAI()"><i class="ti ti-send"></i></button>
+          </div>
+          <div class="quick-btns">
+            <button class="small" onclick="quickAsk('今週何を優先すべきか教えて')">今週の優先度は？</button>
+            <button class="small" onclick="quickAsk('全プロジェクトの進捗をまとめて')">全体進捗まとめ</button>
+            <button class="small" onclick="quickAsk('滞っているタスクや注意すべき点は？')">リスクチェック</button>
+            <button class="small" onclick="quickAsk('次のアクションを3つ提案して')">次のアクション提案</button>
+          </div>
+        </div>
+      </div>
       <div class="panel" id="panel-settings">
         <div class="card">
+          <div class="card-header"><span class="card-title">☁️ GitHub Gist 同期</span></div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6;">GitHub Personal Access Tokenを設定すると、どのデバイスからでも同じデータにアクセスできます。TokenはローカルストレージにのみHTMLから保存されます。</p>
+          <div class="field-gap">
+            <div class="form-col">
+              <span class="form-label">GitHub Personal Access Token</span>
+              <input type="password" id="github-token-input" placeholder="ghp_..." />
+              <p style="font-size:11px;color:var(--text3);margin-top:3px;">必要なスコープ: <code>gist</code> のみ。<a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank" style="color:var(--info-text);">ここで発行</a></p>
+            </div>
+            <div class="form-col">
+              <span class="form-label">Gist ID（初回保存後に自動入力されます）</span>
+              <input type="text" id="gist-id-input" placeholder="（初回保存後に自動入力）" />
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="primary" onclick="saveGistSettings()"><i class="ti ti-check"></i> 設定を保存</button>
+              <button onclick="loadFromGist()"><i class="ti ti-cloud-download"></i> Gistから読み込む</button>
+              <button onclick="saveToGist()"><i class="ti ti-cloud-upload"></i> Gistへ保存</button>
+              <button class="danger" onclick="clearGistSettings()"><i class="ti ti-trash"></i> 設定を削除</button>
+            </div>
+            <p style="font-size:11px;" id="gist-status"></p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Anthropic APIキー</span></div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6;">AI相談機能を使うにはAnthropicのAPIキーが必要です。キーはこのブラウザのローカルストレージにのみ保存されます。</p>
+          <div class="field-gap">
+            <input type="password" id="apikey-input" placeholder="sk-ant-..." />
+            <div style="display:flex;gap:8px;">
+              <button class="primary" onclick="saveApiKey()"><i class="ti ti-check"></i> 保存</button>
+              <button onclick="clearApiKey()"><i class="ti ti-trash"></i> 削除</button>
+            </div>
+            <p style="font-size:11px;color:var(--text3);" id="apikey-status"></p>
+          </div>
+        </div>
+        <div class="card">
           <div class="card-header"><span class="card-title">データ管理</span></div>
-          <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6;">データはこのブラウザのローカルストレージに保存されます。定期的にエクスポートしてバックアップを取ることをおすすめします。</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button onclick="exportData()"><i class="ti ti-download"></i> エクスポート</button>
-            <button onclick="document.getElementById('import-input').click()"><i class="ti ti-upload"></i> インポート</button>
+            <button onclick="exportData()"><i class="ti ti-download"></i> データをエクスポート</button>
+            <button onclick="document.getElementById('import-input').click()"><i class="ti ti-upload"></i> データをインポート</button>
           </div>
           <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)" />
-          <p style="font-size:11px;color:var(--text3);margin-top:8px;">JSONファイルとして保存・読み込みできます</p>
+          <p style="font-size:11px;color:var(--text3);margin-top:8px;">エクスポートはJSONファイルとして保存されます</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- プロジェクトビュー -->
+  <!-- PROJECT VIEW -->
   <div id="project-view" style="display:none;flex-direction:column;flex:1;">
     <div class="tabs" id="project-tabs">
       <button class="tab active" onclick="switchProjectTab('tasks')"><i class="ti ti-checklist"></i>タスク</button>
       <button class="tab" onclick="switchProjectTab('context')"><i class="ti ti-file-text"></i>コンテキスト</button>
+      <button class="tab" onclick="switchProjectTab('project-ai')"><i class="ti ti-message"></i>AI相談</button>
     </div>
     <div class="content">
+
       <div class="panel active" id="panel-tasks">
         <div class="card">
           <div class="card-header" style="margin-bottom:8px;"><span class="card-title">タスク追加</span></div>
           <div class="field-gap">
             <input type="text" id="task-input" placeholder="タスクを入力..." onkeydown="if(event.key==='Enter')addTask()" />
             <div class="form-grid">
-              <div class="form-col"><span class="form-label">優先度</span>
-                <select id="task-priority"><option value="high">高</option><option value="mid" selected>中</option><option value="low">低</option></select>
+              <div class="form-col">
+                <span class="form-label">優先度</span>
+                <select id="task-priority">
+                  <option value="high">高</option>
+                  <option value="mid" selected>中</option>
+                  <option value="low">低</option>
+                </select>
               </div>
-              <div class="form-col"><span class="form-label">ステータス</span>
-                <select id="task-status-sel"><option value="todo">未着手</option><option value="doing">進行中</option><option value="done">完了</option></select>
+              <div class="form-col">
+                <span class="form-label">ステータス</span>
+                <select id="task-status-sel">
+                  <option value="todo">未着手</option>
+                  <option value="doing">進行中</option>
+                  <option value="done">完了</option>
+                </select>
               </div>
             </div>
             <button class="primary" onclick="addTask()"><i class="ti ti-plus"></i> タスクを追加</button>
@@ -202,7 +271,10 @@
           <div class="card-header">
             <span class="card-title">タスク一覧</span>
             <select id="filter-status" onchange="renderTasks()" style="font-size:12px;padding:4px 8px;width:auto;">
-              <option value="all">すべて</option><option value="todo">未着手</option><option value="doing">進行中</option><option value="done">完了</option>
+              <option value="all">すべて</option>
+              <option value="todo">未着手</option>
+              <option value="doing">進行中</option>
+              <option value="done">完了</option>
             </select>
           </div>
           <div class="task-list" id="task-list"></div>
@@ -212,7 +284,7 @@
       <div class="panel" id="panel-context">
         <div class="card">
           <div class="card-header"><span class="card-title">Markdownファイルを読み込む</span></div>
-          <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6;">プロジェクトの最新状況・仕様・メモをMarkdownでまとめてアップロードしておけます。Claudeに持ち込んでAI相談に使うことも可能です。</p>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6;">プロジェクトの最新状況・仕様・メモをMarkdownでまとめてアップロードすると、AIがコンテキストを理解してサポートします。</p>
           <div class="md-upload-area" id="md-upload-area" onclick="document.getElementById('md-file-input').click()">
             <i class="ti ti-file-upload" style="font-size:24px;color:var(--text2);margin-bottom:6px;display:block;"></i>
             <div style="font-size:13px;color:var(--text2);">クリックしてMarkdownファイルを選択</div>
@@ -222,402 +294,519 @@
           <div id="md-preview-area" style="margin-top:10px;display:none;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
               <span class="form-label" id="md-filename"></span>
-              <button class="small danger-btn" onclick="clearMd()"><i class="ti ti-trash"></i> 削除</button>
+              <button class="small danger" onclick="clearMd()"><i class="ti ti-trash"></i> 削除</button>
             </div>
             <div class="md-preview" id="md-preview"></div>
           </div>
         </div>
         <div class="card">
           <div class="card-header"><span class="card-title">または直接入力</span></div>
-          <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">メモや状況をここに書いておけます。自動保存されます。</p>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">ファイルがなければここに直接メモ・状況・課題を入力できます。</p>
           <textarea id="md-text-input" placeholder="# プロジェクト状況&#10;&#10;## 現在の進捗&#10;...&#10;&#10;## 課題・ブロッカー&#10;..." style="min-height:140px;" oninput="saveMdText()"></textarea>
-          <p style="font-size:11px;color:var(--text3);margin-top:6px;"><i class="ti ti-device-floppy" style="font-size:12px;vertical-align:-1px;"></i> 自動保存</p>
+          <p style="font-size:11px;color:var(--text3);margin-top:6px;"><i class="ti ti-device-floppy" style="font-size:12px;vertical-align:-1px;"></i> 自動保存されます</p>
         </div>
       </div>
+
+      <div class="panel" id="panel-project-ai">
+        <div class="card" style="flex:1;">
+          <div class="card-header">
+            <span class="card-title" id="proj-ai-title">このプロジェクトについて相談</span>
+            <button onclick="clearProjectChat()"><i class="ti ti-trash"></i> クリア</button>
+          </div>
+          <div id="proj-ai-context-badge" style="margin-bottom:8px;display:none;">
+            <span style="font-size:11px;padding:3px 10px;background:var(--info-bg);color:var(--info-text);border-radius:10px;display:inline-flex;align-items:center;gap:4px;">
+              <i class="ti ti-file-check" style="font-size:13px;"></i> Markdownコンテキスト読み込み済み
+            </span>
+          </div>
+          <div class="ai-messages" id="proj-ai-messages"></div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="proj-ai-input" placeholder="このプロジェクトについて..." onkeydown="if(event.key==='Enter')sendProjectAI()" />
+            <button class="primary" onclick="sendProjectAI()"><i class="ti ti-send"></i></button>
+          </div>
+          <div class="quick-btns">
+            <button class="small" onclick="projQuickAsk('今何を優先すべき？')">優先タスクは？</button>
+            <button class="small" onclick="projQuickAsk('進捗と課題を整理して')">進捗整理</button>
+            <button class="small" onclick="projQuickAsk('次のアクションを提案して')">次のアクション</button>
+            <button class="small" onclick="projQuickAsk('リスクや懸念点はある？')">リスク確認</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- モーダル -->
-  <div class="modal-overlay" id="modal">
-    <div class="modal-box">
-      <div class="modal-title" id="modal-title"></div>
-      <div id="modal-body"></div>
-      <div class="modal-actions" id="modal-actions"></div>
+  <!-- ADD PROJECT MODAL -->
+  <div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;width:min(460px,90vw);display:flex;flex-direction:column;gap:12px;" id="modal-body">
     </div>
   </div>
+
 </div>
 
 <script>
-let projects = [], currentProjectId = null, editingTaskId = null;
+let projects = [], chatHistory = [], projChatHistory = [], currentProjectId = null;
 const COLORS = ['#1D9E75','#378ADD','#D85A30','#BA7517','#7F77DD','#D4537E','#639922','#533F6B'];
 
-function save() { try { localStorage.setItem('pm_projects', JSON.stringify(projects)); } catch(e) {} }
+// ---- GitHub Gist Sync ----
+function getGithubToken() { return localStorage.getItem('pm_github_token') || ''; }
+function getGistId() { return localStorage.getItem('pm_gist_id') || ''; }
+
+function saveGistSettings() {
+  const token = document.getElementById('github-token-input').value.trim();
+  const gistId = document.getElementById('gist-id-input').value.trim();
+  if(token) localStorage.setItem('pm_github_token', token);
+  if(gistId) localStorage.setItem('pm_gist_id', gistId);
+  setGistStatus('✓ 設定を保存しました', '#1D9E75');
+  updateSyncBtn();
+}
+
+function clearGistSettings() {
+  localStorage.removeItem('pm_github_token');
+  localStorage.removeItem('pm_gist_id');
+  document.getElementById('github-token-input').value = '';
+  document.getElementById('gist-id-input').value = '';
+  setGistStatus('設定を削除しました', 'var(--text3)');
+  updateSyncBtn();
+}
+
+function setGistStatus(msg, color) {
+  const el = document.getElementById('gist-status');
+  if(el) { el.textContent = msg; el.style.color = color || 'var(--text2)'; }
+  const syncEl = document.getElementById('sync-status');
+  if(syncEl) { syncEl.textContent = msg; }
+}
+
+function updateSyncBtn() {
+  const btn = document.getElementById('sync-btn');
+  if(btn) btn.style.display = getGithubToken() ? 'inline-flex' : 'none';
+}
+
+async function saveToGist() {
+  const token = getGithubToken();
+  if(!token) { setGistStatus('⚠ GitHub Tokenが設定されていません', '#A32D2D'); return; }
+  setGistStatus('保存中...', 'var(--text2)');
+  const payload = JSON.stringify({ projects, version: 2, savedAt: new Date().toISOString() }, null, 2);
+  const gistId = getGistId();
+  try {
+    let res, data;
+    if(gistId) {
+      res = await fetch(`https://api.github.com/gists/${gistId}`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: { 'project-manager-data.json': { content: payload } } })
+      });
+    } else {
+      res = await fetch('https://api.github.com/gists', {
+        method: 'POST',
+        headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: 'Project Manager Data', public: false, files: { 'project-manager-data.json': { content: payload } } })
+      });
+    }
+    data = await res.json();
+    if(data.id) {
+      localStorage.setItem('pm_gist_id', data.id);
+      const el = document.getElementById('gist-id-input');
+      if(el) el.value = data.id;
+      const now = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'});
+      setGistStatus(`✓ Gistに保存しました（${now}）`, '#1D9E75');
+    } else {
+      setGistStatus(`エラー: ${data.message || '保存失敗'}`, '#A32D2D');
+    }
+  } catch(e) { setGistStatus(`エラー: ${e.message}`, '#A32D2D'); }
+}
+
+async function loadFromGist() {
+  const token = getGithubToken();
+  const gistId = getGistId();
+  if(!token) { setGistStatus('⚠ GitHub Tokenが設定されていません', '#A32D2D'); return; }
+  if(!gistId) { setGistStatus('⚠ Gist IDが設定されていません。先に保存してください', '#A32D2D'); return; }
+  setGistStatus('読み込み中...', 'var(--text2)');
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: { 'Authorization': `token ${token}` }
+    });
+    const data = await res.json();
+    const fileContent = data.files?.['project-manager-data.json']?.content;
+    if(!fileContent) { setGistStatus('データファイルが見つかりません', '#A32D2D'); return; }
+    const parsed = JSON.parse(fileContent);
+    if(parsed.projects) {
+      projects = parsed.projects;
+      save();
+      render();
+      const now = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'});
+      setGistStatus(`✓ Gistから読み込みました（${now}）`, '#1D9E75');
+    }
+  } catch(e) { setGistStatus(`エラー: ${e.message}`, '#A32D2D'); }
+}
+
+async function syncGist() {
+  // 保存してから読み込む（他デバイスとの競合を避けるため保存優先）
+  await saveToGist();
+}
+// ---- End Gist Sync ----
+
 function load() {
-  try { const d = localStorage.getItem('pm_projects'); if(d) projects = JSON.parse(d); } catch(e) {}
+  try { const d = localStorage.getItem('pm_projects'); if(d) projects = JSON.parse(d); } catch(e) { projects = []; }
   if(!projects.length) { projects = getSamples(); save(); }
   render();
-}
-function getSamples() {
-  return [{ id:1, name:'Webサイトリニューアル', desc:'コーポレートサイトの全面刷新', status:'進行中', color:'#1D9E75',
-    tasks:[{id:101,text:'デザインカンプ作成',priority:'high',status:'done'},{id:102,text:'トップページHTML実装',priority:'high',status:'doing'},{id:103,text:'CMSセットアップ',priority:'mid',status:'todo'}],
-    mdContent:'', mdFilename:'', mdText:'' }];
+  const key = localStorage.getItem('pm_apikey');
+  if(key) { document.getElementById('apikey-input').value = key; document.getElementById('apikey-status').textContent = '✓ APIキーが設定されています'; }
+  // Gist設定の復元
+  const githubToken = getGithubToken();
+  const gistId = getGistId();
+  if(githubToken) document.getElementById('github-token-input').value = githubToken;
+  if(gistId) document.getElementById('gist-id-input').value = gistId;
+  updateSyncBtn();
 }
 
-function showModal(title, bodyHtml, buttons) {
-  document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-body').innerHTML = bodyHtml;
-  const actions = document.getElementById('modal-actions');
-  actions.innerHTML = '';
-  buttons.forEach(b => {
-    const btn = document.createElement('button');
-    btn.textContent = b.label;
-    if(b.cls) btn.className = b.cls;
-    btn.onclick = () => { hideModal(); if(b.action) b.action(); };
-    actions.appendChild(btn);
-  });
-  document.getElementById('modal').style.display = 'flex';
+function getSamples() {
+  return [
+    { id: 1, name: 'Webサイトリニューアル', desc: 'コーポレートサイトの全面刷新', status: '進行中', color: '#1D9E75', tasks: [
+      { id: 101, text: 'デザインカンプ作成', priority: 'high', status: 'done' },
+      { id: 102, text: 'トップページ実装', priority: 'high', status: 'doing' },
+      { id: 103, text: 'CMSセットアップ', priority: 'mid', status: 'todo' },
+    ], mdContent: '', mdFilename: '', mdText: '' }
+  ];
 }
-function hideModal() { document.getElementById('modal').style.display = 'none'; }
-document.getElementById('modal').addEventListener('click', e => { if(e.target === document.getElementById('modal')) hideModal(); });
+
+function save() { try { localStorage.setItem('pm_projects', JSON.stringify(projects)); } catch(e) {} }
 
 function render() { renderStats(); renderProjectGrid(); }
+
 function renderStats() {
-  const all = projects.flatMap(p => p.tasks||[]);
+  const allTasks = projects.flatMap(p => p.tasks || []);
   document.getElementById('stats-row').innerHTML = `
     <div class="stat"><div class="stat-num">${projects.length}</div><div class="stat-label">プロジェクト</div></div>
     <div class="stat"><div class="stat-num">${projects.filter(p=>p.status==='進行中').length}</div><div class="stat-label">進行中</div></div>
-    <div class="stat"><div class="stat-num">${all.filter(t=>t.status==='doing').length}</div><div class="stat-label">作業中タスク</div></div>
-    <div class="stat"><div class="stat-num">${all.filter(t=>t.status==='done').length}</div><div class="stat-label">完了タスク</div></div>`;
+    <div class="stat"><div class="stat-num">${allTasks.filter(t=>t.status==='doing').length}</div><div class="stat-label">作業中タスク</div></div>
+    <div class="stat"><div class="stat-num">${allTasks.filter(t=>t.status==='done').length}</div><div class="stat-label">完了タスク</div></div>
+  `;
 }
+
 function renderProjectGrid() {
   const cards = projects.map(p => {
-    const tasks=p.tasks||[], done=tasks.filter(t=>t.status==='done').length;
-    const pct=tasks.length?Math.round(done/tasks.length*100):0, hasMd=!!(p.mdContent||p.mdText);
+    const tasks = p.tasks || [];
+    const done = tasks.filter(t => t.status === 'done').length;
+    const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0;
+    const hasMd = !!(p.mdContent || p.mdText);
     return `<div class="project-card" onclick="openProject(${p.id})">
       <div class="project-card-header">
         <div class="project-dot" style="background:${p.color}"></div>
-        <div class="project-card-name">${p.name}</div>
-        <div class="project-card-actions">
-          <button class="icon-btn" onclick="event.stopPropagation();showEditProjectModal(${p.id})" title="編集"><i class="ti ti-pencil" style="font-size:14px;"></i></button>
-          <button class="icon-btn danger" onclick="event.stopPropagation();confirmDeleteProject(${p.id})" title="削除"><i class="ti ti-trash" style="font-size:14px;"></i></button>
-        </div>
+        <div class="project-card-name">${esc(p.name)}</div>
+        <button class="proj-delete-btn" onclick="event.stopPropagation();deleteProject(${p.id})"><i class="ti ti-x"></i></button>
       </div>
-      ${p.desc?`<div class="project-card-desc">${p.desc}</div>`:''}
+      ${p.desc ? `<div class="project-card-desc">${esc(p.desc)}</div>` : ''}
       <div class="progress-label"><span>${done}/${tasks.length} 完了</span><span>${pct}%</span></div>
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${p.color}"></div></div>
       <div class="task-count">${tasks.filter(t=>t.status==='doing').length} 件進行中・${tasks.filter(t=>t.status==='todo').length} 件未着手</div>
-      ${hasMd?`<span class="md-badge"><i class="ti ti-file-check" style="font-size:11px;"></i> MD読込済</span>`:''}
+      ${hasMd ? `<div><span class="md-badge"><i class="ti ti-file-check" style="font-size:11px;"></i> MD読込済</span></div>` : ''}
     </div>`;
   }).join('');
-  document.getElementById('project-grid').innerHTML = cards +
-    `<div class="add-project-card" onclick="showAddProjectModal()"><i class="ti ti-plus" style="font-size:20px;"></i>新しいプロジェクト</div>`;
+  document.getElementById('project-grid').innerHTML = cards + `<div class="add-project-card" onclick="showAddModal()"><i class="ti ti-plus" style="font-size:20px;"></i>新しいプロジェクト</div>`;
 }
 
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
 function switchMainTab(tab) {
-  document.querySelectorAll('#main-view > .tabs .tab').forEach((t,i)=>t.classList.toggle('active',['projects','settings'][i]===tab));
-  ['panel-projects','panel-settings'].forEach(id=>document.getElementById(id).classList.toggle('active',id==='panel-'+tab));
-}
-function switchProjectTab(tab) {
-  document.querySelectorAll('#project-tabs .tab').forEach((t,i)=>t.classList.toggle('active',['tasks','context'][i]===tab));
-  ['panel-tasks','panel-context'].forEach((id,i)=>document.getElementById(id).classList.toggle('active',['tasks','context'][i]===tab));
+  const tabs = ['projects','ai','settings'];
+  document.querySelectorAll('#main-tabs .tab').forEach((t,i) => t.classList.toggle('active', tabs[i] === tab));
+  tabs.forEach(id => { const el = document.getElementById('panel-'+id); if(el) el.classList.toggle('active', id === tab); });
 }
 
 function openProject(id) {
   currentProjectId = id;
-  const p = projects.find(x=>x.id===id);
+  const p = projects.find(x => x.id === id);
   document.getElementById('main-view').style.display = 'none';
   document.getElementById('project-view').style.display = 'flex';
   document.getElementById('header-left').innerHTML = `
-    <button class="back-btn small" onclick="backToMain()"><i class="ti ti-arrow-left"></i> 戻る</button>
-    <div style="width:8px;height:8px;border-radius:50%;background:${p.color};flex-shrink:0;"></div>
-    <span class="header-title">${p.name}</span>`;
-  switchProjectTab('tasks'); renderTasks(); loadContextTab(p);
+    <button class="back-btn small" onclick="backToMain()"><i class="ti ti-arrow-left"></i>戻る</button>
+    <div class="project-dot" style="background:${p.color};width:8px;height:8px;border-radius:50%;"></div>
+    <span class="header-title">${esc(p.name)}</span>
+  `;
+  switchProjectTab('tasks');
+  renderTasks();
+  loadContextTab(p);
+  updateMdBadge(p);
+  projChatHistory = [];
 }
+
 function backToMain() {
   currentProjectId = null;
   document.getElementById('main-view').style.display = 'block';
   document.getElementById('project-view').style.display = 'none';
   document.getElementById('header-left').innerHTML = `
-    <i class="ti ti-layout-kanban" style="font-size:18px;color:var(--text2);flex-shrink:0;"></i>
-    <span class="header-title">プロジェクトマネージャー</span>`;
+    <i class="ti ti-layout-kanban" style="font-size:18px;color:var(--text2)"></i>
+    <span class="header-title" id="header-title">プロジェクトマネージャー</span>
+  `;
   render();
 }
 
-function confirmDeleteProject(id) {
-  const p = projects.find(x=>x.id===id);
-  showModal('プロジェクトを削除', `「${p.name}」とすべてのタスクを削除します。`, [
-    { label:'キャンセル' }, { label:'削除する', cls:'danger-btn', action:()=>deleteProject(id) }]);
-}
-function deleteProject(id) { projects=projects.filter(p=>p.id!==id); save(); render(); }
-
-function showAddProjectModal() {
-  showModal('新しいプロジェクト',
-    `<div class="field-gap" style="margin-top:4px;">
-      <div class="form-col"><span class="form-label">プロジェクト名</span><input type="text" id="new-name" placeholder="名前を入力" /></div>
-      <div class="form-col"><span class="form-label">概要</span><input type="text" id="new-desc" placeholder="（任意）" /></div>
-      <div class="form-col"><span class="form-label">ステータス</span>
-        <select id="new-status"><option>進行中</option><option>計画中</option><option>完了</option><option>保留</option></select></div>
-      <div class="form-col"><span class="form-label">カラー</span>
-        <div class="color-row" id="color-row">
-          ${COLORS.map((c,i)=>`<div class="color-dot ${i===0?'selected':''}" style="background:${c}" data-color="${c}" onclick="selectColor(this)"></div>`).join('')}
-        </div></div>
-    </div>`,
-    [{ label:'キャンセル' }, { label:'作成', cls:'primary', action:addProject }]);
-  setTimeout(()=>document.getElementById('new-name')?.focus(),50);
-}
-function selectColor(el) {
-  document.querySelectorAll('#color-row .color-dot').forEach(d=>d.classList.remove('selected'));
-  el.classList.add('selected');
-}
-function addProject() {
-  const name=document.getElementById('new-name')?.value.trim(); if(!name) return;
-  const sel=document.querySelector('#color-row .color-dot.selected');
-  projects.push({id:Date.now(),name,desc:document.getElementById('new-desc').value.trim(),status:document.getElementById('new-status').value,color:sel?sel.dataset.color:COLORS[0],tasks:[],mdContent:'',mdFilename:'',mdText:''});
-  save(); render();
-}
-
-function esc(s) { return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
-
-function showEditProjectModal(id) {
-  const p=projects.find(x=>x.id===id); if(!p) return;
-  const statuses=['進行中','計画中','完了','保留'];
-  showModal('プロジェクトを編集',
-    `<div class="field-gap" style="margin-top:4px;">
-      <div class="form-col"><span class="form-label">プロジェクト名</span><input type="text" id="edit-name" value="${esc(p.name)}" /></div>
-      <div class="form-col"><span class="form-label">概要</span><input type="text" id="edit-desc" value="${esc(p.desc)}" placeholder="（任意）" /></div>
-      <div class="form-col"><span class="form-label">ステータス</span>
-        <select id="edit-status">${statuses.map(s=>`<option ${s===p.status?'selected':''}>${s}</option>`).join('')}</select></div>
-      <div class="form-col"><span class="form-label">カラー</span>
-        <div class="color-row" id="edit-color-row">
-          ${COLORS.map(c=>`<div class="color-dot ${c===p.color?'selected':''}" style="background:${c}" data-color="${c}" onclick="selectEditColor(this)"></div>`).join('')}
-        </div></div>
-    </div>`,
-    [{ label:'キャンセル' }, { label:'保存', cls:'primary', action:()=>saveEditProject(id) }]);
-  setTimeout(()=>document.getElementById('edit-name')?.focus(),50);
-}
-function selectEditColor(el) {
-  document.querySelectorAll('#edit-color-row .color-dot').forEach(d=>d.classList.remove('selected'));
-  el.classList.add('selected');
-}
-function saveEditProject(id) {
-  const p=projects.find(x=>x.id===id); if(!p) return;
-  const name=document.getElementById('edit-name')?.value.trim(); if(!name) return;
-  p.name=name;
-  p.desc=document.getElementById('edit-desc').value.trim();
-  p.status=document.getElementById('edit-status').value;
-  const sel=document.querySelector('#edit-color-row .color-dot.selected');
-  if(sel) p.color=sel.dataset.color;
-  save(); render();
+function switchProjectTab(tab) {
+  const tabs = ['tasks','context','project-ai'];
+  document.querySelectorAll('#project-tabs .tab').forEach((t,i) => t.classList.toggle('active', tabs[i] === tab));
+  ['panel-tasks','panel-context','panel-project-ai'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    if(el) el.classList.toggle('active', tabs[i] === tab);
+  });
 }
 
 function renderTasks() {
-  const p=projects.find(x=>x.id===currentProjectId); if(!p) return;
-  const filter=document.getElementById('filter-status')?.value||'all';
-  const sorted=[...(p.tasks||[])].filter(t=>filter==='all'||t.status===filter).sort((a,b)=>{
-    const so={todo:0,doing:1,done:2},po={high:0,mid:1,low:2};
-    return so[a.status]!==so[b.status]?so[a.status]-so[b.status]:po[a.priority]-po[b.priority];
+  const p = projects.find(x => x.id === currentProjectId);
+  if(!p) return;
+  const filter = document.getElementById('filter-status')?.value || 'all';
+  const tasks = (p.tasks || []).filter(t => filter === 'all' || t.status === filter);
+  const sorted = [...tasks].sort((a,b) => {
+    const so = {todo:0,doing:1,done:2}, po = {high:0,mid:1,low:2};
+    if(so[a.status] !== so[b.status]) return so[a.status] - so[b.status];
+    return po[a.priority] - po[b.priority];
   });
-  const stL={todo:'未着手',doing:'進行中',done:'完了'},stB={todo:'badge-todo',doing:'badge-doing',done:'badge-done'};
-  const prL={high:'高',mid:'中',low:'低'},prB={high:'badge-high',mid:'badge-mid',low:'badge-low'};
-  const el=document.getElementById('task-list');
-  if(!sorted.length){el.innerHTML=`<div class="empty">タスクがありません</div>`;return;}
-  el.innerHTML=sorted.map(t=>{
-    if(t.id===editingTaskId) {
-      return `<div class="task-item editing">
-        <div class="task-status-btn ${t.status}" title="編集中"></div>
-        <div class="task-body">
-          <input type="text" id="edit-task-text-${t.id}" value="${esc(t.text)}" onkeydown="if(event.key==='Enter')saveTaskEdit(${t.id});else if(event.key==='Escape')cancelTaskEdit()" />
-          <div class="task-edit-row">
-            <select id="edit-task-priority-${t.id}">
-              <option value="high" ${t.priority==='high'?'selected':''}>優先度: 高</option>
-              <option value="mid" ${t.priority==='mid'?'selected':''}>優先度: 中</option>
-              <option value="low" ${t.priority==='low'?'selected':''}>優先度: 低</option>
-            </select>
-            <select id="edit-task-status-${t.id}">
-              <option value="todo" ${t.status==='todo'?'selected':''}>未着手</option>
-              <option value="doing" ${t.status==='doing'?'selected':''}>進行中</option>
-              <option value="done" ${t.status==='done'?'selected':''}>完了</option>
-            </select>
-            <button class="small primary" onclick="saveTaskEdit(${t.id})"><i class="ti ti-check"></i> 保存</button>
-            <button class="small" onclick="cancelTaskEdit()">キャンセル</button>
-          </div>
-        </div>
-      </div>`;
-    }
-    const hasMemo = !!(t.memo && t.memo.trim());
-    const links = hasMemo ? extractUrls(t.memo) : [];
-    const linksHtml = links.length ? `<div class="task-memo-links">${links.map(u => `<a class="task-memo-link" href="${esc(u)}" target="_blank" rel="noopener"><span class="memo-dot"></span>${esc(u)}</a>`).join('')}</div>` : '';
-    return `<div class="task-item" id="task-item-${t.id}">
+  const stL = {todo:'未着手',doing:'進行中',done:'完了'}, stB = {todo:'badge-todo',doing:'badge-doing',done:'badge-done'};
+  const prL = {high:'高',mid:'中',low:'低'}, prB = {high:'badge-high',mid:'badge-mid',low:'badge-low'};
+  const el = document.getElementById('task-list');
+  if(!sorted.length) { el.innerHTML = `<div class="empty">タスクがありません</div>`; return; }
+  el.innerHTML = sorted.map(t => `
+    <div class="task-item">
       <div class="task-status-btn ${t.status}" onclick="cycleTaskStatus(${t.id})" title="クリックでステータス変更"></div>
       <div class="task-body">
         <div class="task-text ${t.status==='done'?'done':''}">${esc(t.text)}</div>
         <div class="task-meta">
           <span class="badge ${prB[t.priority]}">${prL[t.priority]}</span>
           <span class="badge ${stB[t.status]}">${stL[t.status]}</span>
-          ${hasMemo ? '<span class="memo-indicator" style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px;"><i class="ti ti-notes" style="font-size:11px;"></i>メモあり</span>' : ''}
-        </div>
-        <div class="task-memo-area" id="memo-area-${t.id}">
-          <textarea class="task-memo-textarea" id="memo-text-${t.id}" placeholder="メモ・URLなど..." oninput="saveMemo(${t.id})">${esc(t.memo || '')}</textarea>
-          ${linksHtml}
         </div>
       </div>
-      <button class="task-memo-btn ${hasMemo?'has-memo':''}" id="memo-btn-${t.id}" onclick="toggleMemo(${t.id})" title="メモ"><i class="ti ti-notes"></i></button>
-      <button class="task-action" onclick="startTaskEdit(${t.id})" title="編集"><i class="ti ti-pencil"></i></button>
-      <button class="task-action danger" onclick="confirmDeleteTask(${t.id})" title="削除"><i class="ti ti-trash"></i></button>
-    </div>`;
-  }).join('');
-  if(editingTaskId) setTimeout(()=>document.getElementById(`edit-task-text-${editingTaskId}`)?.focus(),50);
+      <button class="task-delete" onclick="deleteTask(${t.id})"><i class="ti ti-trash"></i></button>
+    </div>
+  `).join('');
 }
+
 function addTask() {
-  const text=document.getElementById('task-input').value.trim(); if(!text) return;
-  const p=projects.find(x=>x.id===currentProjectId); if(!p) return;
-  if(!p.tasks) p.tasks=[];
-  p.tasks.push({id:Date.now(),text,priority:document.getElementById('task-priority').value,status:document.getElementById('task-status-sel').value,memo:''});
-  document.getElementById('task-input').value='';
+  const text = document.getElementById('task-input').value.trim();
+  if(!text) return;
+  const p = projects.find(x => x.id === currentProjectId);
+  if(!p) return;
+  if(!p.tasks) p.tasks = [];
+  p.tasks.push({ id: Date.now(), text, priority: document.getElementById('task-priority').value, status: document.getElementById('task-status-sel').value });
+  document.getElementById('task-input').value = '';
   save(); renderTasks(); renderStats();
 }
+
 function cycleTaskStatus(taskId) {
-  const p=projects.find(x=>x.id===currentProjectId), t=p?.tasks?.find(x=>x.id===taskId); if(!t) return;
-  t.status={todo:'doing',doing:'done',done:'todo'}[t.status];
-  save(); renderTasks(); renderStats();
-}
-function confirmDeleteTask(taskId) {
-  const p=projects.find(x=>x.id===currentProjectId), t=p?.tasks?.find(x=>x.id===taskId); if(!t) return;
-  showModal('タスクを削除', `「${t.text}」を削除しますか？`, [
-    { label:'キャンセル' }, { label:'削除する', cls:'danger-btn', action:()=>deleteTask(taskId) }]);
-}
-function deleteTask(taskId) {
-  const p=projects.find(x=>x.id===currentProjectId); if(!p) return;
-  p.tasks=p.tasks.filter(t=>t.id!==taskId);
-  if(editingTaskId===taskId) editingTaskId=null;
-  save(); renderTasks(); renderStats();
-}
-function startTaskEdit(taskId) { editingTaskId=taskId; renderTasks(); }
-function cancelTaskEdit() { editingTaskId=null; renderTasks(); }
-function saveTaskEdit(taskId) {
-  const p=projects.find(x=>x.id===currentProjectId), t=p?.tasks?.find(x=>x.id===taskId); if(!t) return;
-  const text=document.getElementById(`edit-task-text-${taskId}`)?.value.trim(); if(!text) return;
-  t.text=text;
-  t.priority=document.getElementById(`edit-task-priority-${taskId}`).value;
-  t.status=document.getElementById(`edit-task-status-${taskId}`).value;
-  editingTaskId=null;
-  save(); renderTasks(); renderStats();
-}
-
-function loadContextTab(p) {
-  const el=document.getElementById('md-text-input'); if(el) el.value=p.mdText||'';
-  if(p.mdContent) {
-    document.getElementById('md-preview-area').style.display='block';
-    document.getElementById('md-filename').textContent=p.mdFilename||'uploaded.md';
-    document.getElementById('md-preview').textContent=p.mdContent.slice(0,800)+(p.mdContent.length>800?'\n...':'');
-    document.getElementById('md-upload-area').className='md-upload-area has-file';
-  } else {
-    document.getElementById('md-preview-area').style.display='none';
-    document.getElementById('md-upload-area').className='md-upload-area';
-  }
-}
-async function handleMdUpload(e) {
-  const file=e.target.files[0]; if(!file) return;
-  const text=await file.text();
-  const p=projects.find(x=>x.id===currentProjectId); if(!p) return;
-  p.mdContent=text; p.mdFilename=file.name;
-  save(); loadContextTab(p); e.target.value='';
-}
-function clearMd() {
-  const p=projects.find(x=>x.id===currentProjectId); if(!p) return;
-  p.mdContent=''; p.mdFilename=''; save(); loadContextTab(p);
-}
-function saveMdText() {
-  const p=projects.find(x=>x.id===currentProjectId); if(!p) return;
-  p.mdText=document.getElementById('md-text-input').value; save();
-}
-
-function toggleMemo(taskId) {
-  const area = document.getElementById('memo-area-' + taskId);
-  const btn = document.getElementById('memo-btn-' + taskId);
-  if(!area) return;
-  const isOpen = area.classList.toggle('open');
-  if(isOpen) { const ta = document.getElementById('memo-text-' + taskId); if(ta) setTimeout(() => ta.focus(), 50); }
-  btn.style.opacity = '1';
-}
-
-function saveMemo(taskId) {
   const p = projects.find(x => x.id === currentProjectId);
   const t = p?.tasks?.find(x => x.id === taskId);
   if(!t) return;
-  const ta = document.getElementById('memo-text-' + taskId);
-  if(!ta) return;
-  t.memo = ta.value;
-  save();
-  const area = document.getElementById('memo-area-' + taskId);
-  if(area) {
-    let linksDiv = area.querySelector('.task-memo-links');
-    const links = extractUrls(t.memo);
-    if(links.length) {
-      const html = `<div class="task-memo-links">${links.map(u => `<a class="task-memo-link" href="${esc(u)}" target="_blank" rel="noopener"><span class="memo-dot"></span>${esc(u)}</a>`).join('')}</div>`;
-      if(linksDiv) linksDiv.outerHTML = html; else area.insertAdjacentHTML('beforeend', html);
-    } else if(linksDiv) linksDiv.remove();
-  }
-  const btn = document.getElementById('memo-btn-' + taskId);
-  if(btn) btn.classList.toggle('has-memo', !!(t.memo && t.memo.trim()));
-  const metaEl = document.querySelector(`#task-item-${taskId} .task-meta`);
-  if(metaEl) {
-    const existing = metaEl.querySelector('.memo-indicator');
-    if(t.memo && t.memo.trim()) { if(!existing) metaEl.insertAdjacentHTML('beforeend', '<span class="memo-indicator" style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px;"><i class="ti ti-notes" style="font-size:11px;"></i>メモあり</span>'); }
-    else if(existing) existing.remove();
+  t.status = {todo:'doing',doing:'done',done:'todo'}[t.status];
+  save(); renderTasks(); renderStats();
+}
+
+function deleteTask(taskId) {
+  const p = projects.find(x => x.id === currentProjectId);
+  if(!p) return;
+  p.tasks = p.tasks.filter(t => t.id !== taskId);
+  save(); renderTasks(); renderStats();
+}
+
+function deleteProject(id) {
+  if(!confirm('このプロジェクトを削除しますか？')) return;
+  projects = projects.filter(p => p.id !== id);
+  save(); render();
+}
+
+function loadContextTab(p) {
+  const mdText = document.getElementById('md-text-input');
+  if(mdText) mdText.value = p.mdText || '';
+  if(p.mdContent) {
+    document.getElementById('md-preview-area').style.display = 'block';
+    document.getElementById('md-filename').textContent = p.mdFilename || 'uploaded.md';
+    document.getElementById('md-preview').textContent = p.mdContent.slice(0,800) + (p.mdContent.length > 800 ? '\n...' : '');
+    document.getElementById('md-upload-area').className = 'md-upload-area has-file';
+  } else {
+    document.getElementById('md-preview-area').style.display = 'none';
+    document.getElementById('md-upload-area').className = 'md-upload-area';
   }
 }
 
-function extractUrls(text) {
-  if(!text) return [];
-  const re = /https?:\/\/[^\s　-鿿豈-﫿，。、！？「」『』【】〔〕…]+/g;
-  return [...new Set(text.match(re) || [])];
+async function handleMdUpload(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const text = await file.text();
+  const p = projects.find(x => x.id === currentProjectId); if(!p) return;
+  p.mdContent = text; p.mdFilename = file.name;
+  save(); loadContextTab(p); updateMdBadge(p);
+  e.target.value = '';
 }
+
+function clearMd() {
+  const p = projects.find(x => x.id === currentProjectId); if(!p) return;
+  p.mdContent = ''; p.mdFilename = '';
+  save(); loadContextTab(p); updateMdBadge(p);
+}
+
+function saveMdText() {
+  const p = projects.find(x => x.id === currentProjectId); if(!p) return;
+  p.mdText = document.getElementById('md-text-input').value;
+  save(); updateMdBadge(p);
+}
+
+function updateMdBadge(p) {
+  const badge = document.getElementById('proj-ai-context-badge');
+  if(badge) badge.style.display = (p.mdContent || p.mdText) ? 'block' : 'none';
+}
+
+function showAddModal() {
+  const overlay = document.getElementById('modal-overlay');
+  document.getElementById('modal-body').innerHTML = `
+    <div style="font-size:15px;font-weight:600;color:var(--text);">新しいプロジェクト</div>
+    <div class="field-gap">
+      <div class="form-col"><span class="form-label">プロジェクト名 *</span><input type="text" id="new-name" placeholder="名前を入力" /></div>
+      <div class="form-col"><span class="form-label">概要</span><input type="text" id="new-desc" placeholder="（任意）" /></div>
+      <div class="form-col"><span class="form-label">ステータス</span>
+        <select id="new-status"><option>進行中</option><option>計画中</option><option>完了</option><option>保留</option></select>
+      </div>
+      <div class="form-col"><span class="form-label">カラー</span>
+        <div class="color-row" id="color-row">
+          ${COLORS.map((c,i) => `<div class="color-dot ${i===0?'selected':''}" style="background:${c};" data-color="${c}" onclick="selectColor(this)"></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="closeModal()">キャンセル</button>
+      <button class="primary" onclick="addProject()"><i class="ti ti-check"></i> 作成</button>
+    </div>
+  `;
+  overlay.style.display = 'flex';
+  setTimeout(() => document.getElementById('new-name')?.focus(), 50);
+}
+
+function selectColor(el) {
+  document.querySelectorAll('#color-row .color-dot').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+function addProject() {
+  const name = document.getElementById('new-name')?.value.trim();
+  if(!name) return;
+  const sel = document.querySelector('#color-row .color-dot.selected');
+  const color = sel ? sel.dataset.color : COLORS[0];
+  projects.push({ id: Date.now(), name, desc: document.getElementById('new-desc').value.trim(), status: document.getElementById('new-status').value, color, tasks: [], mdContent: '', mdFilename: '', mdText: '' });
+  save(); closeModal(); render();
+}
+
+function getApiKey() { return localStorage.getItem('pm_apikey') || ''; }
+function saveApiKey() {
+  const k = document.getElementById('apikey-input').value.trim();
+  localStorage.setItem('pm_apikey', k);
+  document.getElementById('apikey-status').textContent = k ? '✓ 保存しました' : '削除しました';
+}
+function clearApiKey() {
+  localStorage.removeItem('pm_apikey');
+  document.getElementById('apikey-input').value = '';
+  document.getElementById('apikey-status').textContent = '削除しました';
+}
+
+function buildGlobalContext() {
+  return projects.map(p => {
+    const tasks = p.tasks || [];
+    const taskSummary = tasks.map(t => `  [${t.status}/${t.priority}] ${t.text}`).join('\n') || '  （タスクなし）';
+    const md = (p.mdContent || p.mdText || '').slice(0, 600);
+    return `■ ${p.name}（${p.status}）\nタスク:\n${taskSummary}${md ? '\nコンテキスト:\n' + md : ''}`;
+  }).join('\n\n');
+}
+
+function buildProjectContext(p) {
+  const tasks = (p.tasks || []).map(t => `[${t.status}/${t.priority}] ${t.text}`).join('\n') || 'なし';
+  const md = (p.mdContent || p.mdText || '');
+  return `プロジェクト: ${p.name}（${p.status}）\n\nタスク:\n${tasks}${md ? '\n\n--- Markdownコンテキスト ---\n' + md : ''}`;
+}
+
+async function callClaude(messages, sys) {
+  const key = getApiKey();
+  if(!key) { return 'APIキーが設定されていません。「設定」タブでAnthropicのAPIキーを入力してください。'; }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 1024, system: sys, messages })
+    });
+    const data = await res.json();
+    if(data.error) return `エラー: ${data.error.message}`;
+    return data.content?.find(b => b.type === 'text')?.text || '応答を取得できませんでした。';
+  } catch(e) { return `エラーが発生しました: ${e.message}`; }
+}
+
+function addMsg(cid, role, text) {
+  const area = document.getElementById(cid);
+  const div = document.createElement('div');
+  div.className = `ai-msg ${role}`;
+  div.textContent = text;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function showLoading(cid) {
+  const area = document.getElementById(cid);
+  const div = document.createElement('div');
+  div.id = cid + '-loading'; div.className = 'ai-loading';
+  div.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  area.appendChild(div); area.scrollTop = area.scrollHeight;
+}
+function removeLoading(cid) { const l = document.getElementById(cid + '-loading'); if(l) l.remove(); }
+
+async function sendAI() {
+  const input = document.getElementById('ai-input');
+  const msg = input.value.trim(); if(!msg) return;
+  input.value = '';
+  addMsg('ai-messages', 'user', msg);
+  chatHistory.push({ role: 'user', content: msg });
+  showLoading('ai-messages');
+  const sys = `あなたは優秀なプロジェクトマネージャーAIです。日本語で、簡潔かつ実践的に回答してください（400文字以内）。\n\n【全プロジェクト状況】\n${buildGlobalContext()}`;
+  const reply = await callClaude(chatHistory, sys);
+  removeLoading('ai-messages');
+  addMsg('ai-messages', 'assistant', reply);
+  chatHistory.push({ role: 'assistant', content: reply });
+}
+
+function quickAsk(msg) { document.getElementById('ai-input').value = msg; sendAI(); }
+function clearChat() { chatHistory = []; document.getElementById('ai-messages').innerHTML = ''; }
+
+async function sendProjectAI() {
+  const input = document.getElementById('proj-ai-input');
+  const msg = input.value.trim(); if(!msg) return;
+  input.value = '';
+  const p = projects.find(x => x.id === currentProjectId);
+  addMsg('proj-ai-messages', 'user', msg);
+  projChatHistory.push({ role: 'user', content: msg });
+  showLoading('proj-ai-messages');
+  const sys = `あなたは優秀なプロジェクトマネージャーAIです。日本語で、このプロジェクトについて簡潔かつ実践的に回答してください（400文字以内）。\n\n${buildProjectContext(p)}`;
+  const reply = await callClaude(projChatHistory, sys);
+  removeLoading('proj-ai-messages');
+  addMsg('proj-ai-messages', 'assistant', reply);
+  projChatHistory.push({ role: 'assistant', content: reply });
+}
+
+function projQuickAsk(msg) { document.getElementById('proj-ai-input').value = msg; sendProjectAI(); }
+function clearProjectChat() { projChatHistory = []; document.getElementById('proj-ai-messages').innerHTML = ''; }
 
 function exportData() {
-  const blob=new Blob([JSON.stringify({projects,version:2,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`projects-${new Date().toISOString().slice(0,10)}.json`; a.click();
+  const blob = new Blob([JSON.stringify({ projects, version: 2, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `project-manager-${new Date().toISOString().slice(0,10)}.json`; a.click();
 }
+
 async function importData(e) {
-  const file=e.target.files[0]; if(!file) return;
-  try { const data=JSON.parse(await file.text()); if(data.projects){projects=data.projects;save();render();alert('インポートしました。');} }
-  catch(err) { alert('読み込みに失敗しました。'); }
-  e.target.value='';
+  const file = e.target.files[0]; if(!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if(data.projects) { projects = data.projects; save(); render(); alert('インポートしました。'); }
+  } catch(err) { alert('ファイルの読み込みに失敗しました。'); }
+  e.target.value = '';
 }
 
-function generateAppIcon() {
-  const c = document.createElement('canvas');
-  c.width = 180; c.height = 180;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#1c1c1a';
-  ctx.fillRect(0, 0, 180, 180);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 72px system-ui, -apple-system, "Helvetica Neue", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('PM', 90, 83);
-  ctx.fillStyle = '#1D9E75';
-  const barX = 40, barY = 148, barW = 100, barH = 11, r = 5;
-  ctx.beginPath();
-  if (ctx.roundRect) {
-    ctx.roundRect(barX, barY, barW, barH, r);
-  } else {
-    ctx.moveTo(barX + r, barY);
-    ctx.arcTo(barX + barW, barY, barX + barW, barY + barH, r);
-    ctx.arcTo(barX + barW, barY + barH, barX, barY + barH, r);
-    ctx.arcTo(barX, barY + barH, barX, barY, r);
-    ctx.arcTo(barX, barY, barX + barW, barY, r);
-    ctx.closePath();
-  }
-  ctx.fill();
-  const link = document.createElement('link');
-  link.rel = 'apple-touch-icon';
-  link.href = c.toDataURL('image/png');
-  document.head.appendChild(link);
-}
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if(e.target === this) closeModal();
+});
 
-generateAppIcon();
 load();
 </script>
 </body>
