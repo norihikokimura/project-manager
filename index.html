@@ -114,6 +114,18 @@
   .modal-title { font-size: 15px; font-weight: 600; color: var(--text); }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
   .empty { text-align: center; padding: 2rem; color: var(--text3); font-size: 13px; }
+  .task-memo-btn { color: var(--text3); cursor: pointer; font-size: 15px; padding: 0 2px; flex-shrink: 0; background: none; border: none; transition: color 0.15s; opacity: 0; }
+  .task-memo-btn.has-memo { opacity: 1; color: var(--info-text); }
+  .task-item:hover .task-memo-btn { opacity: 1; }
+  .task-memo-area { display: none; margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--border); }
+  .task-memo-area.open { display: block; }
+  .task-memo-textarea { width: 100%; padding: 7px 10px; font-size: 12px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: var(--font); outline: none; resize: vertical; min-height: 62px; line-height: 1.6; transition: border-color 0.15s; }
+  .task-memo-textarea:focus { border-color: var(--border2); }
+  .task-memo-textarea::placeholder { color: var(--text3); }
+  .task-memo-links { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
+  .task-memo-link { font-size: 11px; color: var(--info-text); word-break: break-all; display: flex; align-items: center; gap: 4px; text-decoration: none; }
+  .task-memo-link:hover { text-decoration: underline; }
+  .memo-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--info-text); flex-shrink: 0; margin-top: 1px; }
   @media (max-width: 500px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .project-grid { grid-template-columns: 1fr; }
@@ -427,15 +439,24 @@ function renderTasks() {
         </div>
       </div>`;
     }
-    return `<div class="task-item">
+    const hasMemo = !!(t.memo && t.memo.trim());
+    const links = hasMemo ? extractUrls(t.memo) : [];
+    const linksHtml = links.length ? `<div class="task-memo-links">${links.map(u => `<a class="task-memo-link" href="${esc(u)}" target="_blank" rel="noopener"><span class="memo-dot"></span>${esc(u)}</a>`).join('')}</div>` : '';
+    return `<div class="task-item" id="task-item-${t.id}">
       <div class="task-status-btn ${t.status}" onclick="cycleTaskStatus(${t.id})" title="クリックでステータス変更"></div>
       <div class="task-body">
-        <div class="task-text ${t.status==='done'?'done':''}">${t.text}</div>
+        <div class="task-text ${t.status==='done'?'done':''}">${esc(t.text)}</div>
         <div class="task-meta">
           <span class="badge ${prB[t.priority]}">${prL[t.priority]}</span>
           <span class="badge ${stB[t.status]}">${stL[t.status]}</span>
+          ${hasMemo ? '<span class="memo-indicator" style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px;"><i class="ti ti-notes" style="font-size:11px;"></i>メモあり</span>' : ''}
+        </div>
+        <div class="task-memo-area" id="memo-area-${t.id}">
+          <textarea class="task-memo-textarea" id="memo-text-${t.id}" placeholder="メモ・URLなど..." oninput="saveMemo(${t.id})">${esc(t.memo || '')}</textarea>
+          ${linksHtml}
         </div>
       </div>
+      <button class="task-memo-btn ${hasMemo?'has-memo':''}" id="memo-btn-${t.id}" onclick="toggleMemo(${t.id})" title="メモ"><i class="ti ti-notes"></i></button>
       <button class="task-action" onclick="startTaskEdit(${t.id})" title="編集"><i class="ti ti-pencil"></i></button>
       <button class="task-action danger" onclick="confirmDeleteTask(${t.id})" title="削除"><i class="ti ti-trash"></i></button>
     </div>`;
@@ -446,7 +467,7 @@ function addTask() {
   const text=document.getElementById('task-input').value.trim(); if(!text) return;
   const p=projects.find(x=>x.id===currentProjectId); if(!p) return;
   if(!p.tasks) p.tasks=[];
-  p.tasks.push({id:Date.now(),text,priority:document.getElementById('task-priority').value,status:document.getElementById('task-status-sel').value});
+  p.tasks.push({id:Date.now(),text,priority:document.getElementById('task-priority').value,status:document.getElementById('task-status-sel').value,memo:''});
   document.getElementById('task-input').value='';
   save(); renderTasks(); renderStats();
 }
@@ -504,6 +525,48 @@ function clearMd() {
 function saveMdText() {
   const p=projects.find(x=>x.id===currentProjectId); if(!p) return;
   p.mdText=document.getElementById('md-text-input').value; save();
+}
+
+function toggleMemo(taskId) {
+  const area = document.getElementById('memo-area-' + taskId);
+  const btn = document.getElementById('memo-btn-' + taskId);
+  if(!area) return;
+  const isOpen = area.classList.toggle('open');
+  if(isOpen) { const ta = document.getElementById('memo-text-' + taskId); if(ta) setTimeout(() => ta.focus(), 50); }
+  btn.style.opacity = '1';
+}
+
+function saveMemo(taskId) {
+  const p = projects.find(x => x.id === currentProjectId);
+  const t = p?.tasks?.find(x => x.id === taskId);
+  if(!t) return;
+  const ta = document.getElementById('memo-text-' + taskId);
+  if(!ta) return;
+  t.memo = ta.value;
+  save();
+  const area = document.getElementById('memo-area-' + taskId);
+  if(area) {
+    let linksDiv = area.querySelector('.task-memo-links');
+    const links = extractUrls(t.memo);
+    if(links.length) {
+      const html = `<div class="task-memo-links">${links.map(u => `<a class="task-memo-link" href="${esc(u)}" target="_blank" rel="noopener"><span class="memo-dot"></span>${esc(u)}</a>`).join('')}</div>`;
+      if(linksDiv) linksDiv.outerHTML = html; else area.insertAdjacentHTML('beforeend', html);
+    } else if(linksDiv) linksDiv.remove();
+  }
+  const btn = document.getElementById('memo-btn-' + taskId);
+  if(btn) btn.classList.toggle('has-memo', !!(t.memo && t.memo.trim()));
+  const metaEl = document.querySelector(`#task-item-${taskId} .task-meta`);
+  if(metaEl) {
+    const existing = metaEl.querySelector('.memo-indicator');
+    if(t.memo && t.memo.trim()) { if(!existing) metaEl.insertAdjacentHTML('beforeend', '<span class="memo-indicator" style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px;"><i class="ti ti-notes" style="font-size:11px;"></i>メモあり</span>'); }
+    else if(existing) existing.remove();
+  }
+}
+
+function extractUrls(text) {
+  if(!text) return [];
+  const re = /https?:\/\/[^\s　-鿿豈-﫿，。、！？「」『』【】〔〕…]+/g;
+  return [...new Set(text.match(re) || [])];
 }
 
 function exportData() {
