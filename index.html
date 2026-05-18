@@ -234,7 +234,7 @@
       <div class="panel" id="panel-tasks-all">
         <div class="card">
           <div class="card-header">
-            <span class="card-title">全タスク一覧</span>
+            <span class="card-title" id="all-tasks-title">全タスク一覧</span>
             <select id="filter-status-all" onchange="renderAllTasks()" style="font-size:12px;padding:4px 8px;width:auto;">
               <option value="all">すべて</option>
               <option value="todo">未着手</option>
@@ -1002,7 +1002,8 @@ function renderTasks() {
   const sorted = [...tasks].sort((a,b) => {
     const so = {todo:0,doing:1,done:2}, po = {high:0,mid:1,low:2};
     if(so[a.status] !== so[b.status]) return so[a.status] - so[b.status];
-    return po[a.priority] - po[b.priority];
+    if(po[a.priority] !== po[b.priority]) return po[a.priority] - po[b.priority];
+    return b.id - a.id;
   });
   const stL = {todo:'未着手',doing:'進行中',done:'完了'}, stB = {todo:'badge-todo',doing:'badge-doing',done:'badge-done'};
   const prL = {high:'高',mid:'中',low:'低'}, prB = {high:'badge-high',mid:'badge-mid',low:'badge-low'};
@@ -1061,6 +1062,10 @@ function renderAllTasks() {
   const tl = document.getElementById('task-list');
   if(tl) tl.innerHTML = '';
   const filter = document.getElementById('filter-status-all')?.value || 'all';
+  // タイトルをフィルターに応じて切り替え
+  const titles = { all: '全タスク一覧', todo: '未着手一覧', doing: '進行中一覧', done: '完了一覧' };
+  const titleEl = document.getElementById('all-tasks-title');
+  if(titleEl) titleEl.textContent = titles[filter] || titles.all;
   const flat = [];
   for(const p of projects) {
     for(const t of (p.tasks || [])) {
@@ -1068,11 +1073,11 @@ function renderAllTasks() {
       flat.push({ task: t, project: p });
     }
   }
-  // 優先度（高→中→低）→ タスクID昇順（古→新）
+  // 優先度（高→中→低）→ タスクID降順（新→古）
   const po = { high: 0, mid: 1, low: 2 };
   flat.sort((a,b) => {
     if(po[a.task.priority] !== po[b.task.priority]) return po[a.task.priority] - po[b.task.priority];
-    return a.task.id - b.task.id;
+    return b.task.id - a.task.id;
   });
   const stL = {todo:'未着手',doing:'進行中',done:'完了'}, stB = {todo:'badge-todo',doing:'badge-doing',done:'badge-done'};
   const prL = {high:'高',mid:'中',low:'低'}, prB = {high:'badge-high',mid:'badge-mid',low:'badge-low'};
