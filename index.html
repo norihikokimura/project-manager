@@ -191,6 +191,18 @@
   .heatmap-day-label { width: 22px; font-size: 9px; color: var(--text3); text-align: center; flex-shrink: 0; }
   .heatmap-week-sep { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; margin: 0 1px; }
 
+  /* ---- アコーディオン ---- */
+  .acc-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .acc-header { display: flex; align-items: center; justify-content: space-between; padding: 0.875rem 1.25rem; cursor: pointer; user-select: none; transition: background 0.15s; gap: 12px; }
+  .acc-header:hover { background: var(--bg2); }
+  .acc-icon { font-size: 15px; color: var(--text3); transition: transform 0.2s; flex-shrink: 0; }
+  .acc-card.open .acc-icon { transform: rotate(180deg); }
+  .acc-body { display: none; padding: 1rem 1.25rem; border-top: 0.5px solid var(--border); }
+  .acc-card.open .acc-body { display: block; }
+  .acc-section-title { font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.07em; margin: 1.25rem 0 0.75rem; }
+  .acc-section-title:first-child { margin-top: 0; }
+  .acc-period-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0 12px; border-bottom: 0.5px solid var(--border); margin-bottom: 0.5rem; }
+
   @media (max-width: 500px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .project-grid { grid-template-columns: 1fr; }
@@ -250,66 +262,75 @@
       <div class="panel" id="panel-time">
 
         <!-- エフォート率設定 -->
-        <div class="card">
-          <div class="card-header">
+        <div class="acc-card" id="time-card-effort">
+          <div class="acc-header" onclick="toggleAccordion('time-card-effort')">
             <span class="card-title">エフォート率の設定</span>
-            <div style="display:flex;align-items:center;gap:8px;">
+            <i class="ti ti-chevron-down acc-icon"></i>
+          </div>
+          <div class="acc-body">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
               <span class="form-label" style="white-space:nowrap;">週の稼働時間</span>
               <input type="number" id="weekly-hours-input" min="1" max="168" style="width:64px;padding:4px 8px;font-size:13px;" oninput="saveWeeklyHours()" autocomplete="off" />
               <span class="form-label">h</span>
             </div>
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">各プロジェクトへの時間配分を%で設定します。合計100%が基準、120%はストレッチ目標です。</p>
+            <div id="effort-list"></div>
           </div>
-          <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">各プロジェクトへの時間配分を%で設定します。合計100%が基準、120%はストレッチ目標です。</p>
-          <div id="effort-list"></div>
         </div>
 
         <!-- 今週のプラン -->
-        <div class="card">
-          <div class="card-header">
+        <div class="acc-card" id="time-card-weekly-plan">
+          <div class="acc-header" onclick="toggleAccordion('time-card-weekly-plan')">
             <span class="card-title">今週のプラン</span>
-            <span id="weekly-plan-range" style="font-size:12px;color:var(--text2);"></span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span id="weekly-plan-range" style="font-size:12px;color:var(--text2);"></span>
+              <i class="ti ti-chevron-down acc-icon"></i>
+            </div>
           </div>
-          <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">今週、各プロジェクトに何時間使うかを設定します。デフォルトはエフォート率と週稼働時間から自動計算されます。</p>
-          <div id="weekly-plan-list"></div>
+          <div class="acc-body">
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">今週、各プロジェクトに何時間使うかを設定します。デフォルトはエフォート率と週稼働時間から自動計算されます。</p>
+            <div id="weekly-plan-list"></div>
+          </div>
         </div>
 
         <!-- 今日の記録 -->
-        <div class="card">
-          <div class="card-header">
+        <div class="acc-card" id="time-card-today">
+          <div class="acc-header" onclick="toggleAccordion('time-card-today')">
             <span class="card-title">今日の記録</span>
-            <span id="today-label" style="font-size:12px;color:var(--text2);"></span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span id="today-label" style="font-size:12px;color:var(--text2);"></span>
+              <i class="ti ti-chevron-down acc-icon"></i>
+            </div>
           </div>
-          <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">タスク完了時に記録した時間が表示されます。</p>
-          <div id="daily-log-list"></div>
-        </div>
-
-        <!-- 期間ナビゲーション共通ヘッダー -->
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px;">
-          <div style="display:flex;align-items:center;gap:6px;">
-            <button onclick="shiftPeriod(-1)" style="width:32px;height:32px;padding:0;justify-content:center;border-radius:50%;"><i class="ti ti-chevron-left"></i></button>
-            <span id="period-label" style="font-size:13px;font-weight:500;color:var(--text);min-width:130px;text-align:center;"></span>
-            <button onclick="shiftPeriod(1)" id="btn-next-period" style="width:32px;height:32px;padding:0;justify-content:center;border-radius:50%;"><i class="ti ti-chevron-right"></i></button>
-          </div>
-          <div style="display:flex;gap:4px;">
-            <button id="btn-mode-week" onclick="setViewMode('week')" class="small primary">週</button>
-            <button id="btn-mode-month" onclick="setViewMode('month')" class="small">月</button>
+          <div class="acc-body">
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">タスク完了時に記録した時間が表示されます。</p>
+            <div id="daily-log-list"></div>
           </div>
         </div>
 
-        <!-- 実績ダッシュボード -->
-        <div class="card">
-          <div class="card-header" style="margin-bottom:0.75rem;">
-            <span class="card-title" id="dashboard-title">実績</span>
+        <!-- 実績と振り返り -->
+        <div class="acc-card" id="time-card-nav">
+          <div class="acc-header" onclick="toggleAccordion('time-card-nav')">
+            <span class="card-title">実績と振り返り</span>
+            <i class="ti ti-chevron-down acc-icon"></i>
           </div>
-          <div id="weekly-dashboard"></div>
-        </div>
-
-        <!-- 振り返りヒートマップ -->
-        <div class="card">
-          <div class="card-header" style="margin-bottom:0.75rem;">
-            <span class="card-title">振り返り</span>
+          <div class="acc-body">
+            <div class="acc-period-nav">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button onclick="shiftPeriod(-1)" style="width:32px;height:32px;padding:0;justify-content:center;border-radius:50%;"><i class="ti ti-chevron-left"></i></button>
+                <span id="period-label" style="font-size:13px;font-weight:500;color:var(--text);min-width:130px;text-align:center;"></span>
+                <button onclick="shiftPeriod(1)" id="btn-next-period" style="width:32px;height:32px;padding:0;justify-content:center;border-radius:50%;"><i class="ti ti-chevron-right"></i></button>
+              </div>
+              <div style="display:flex;gap:4px;">
+                <button id="btn-mode-week" onclick="setViewMode('week')" class="small primary">週</button>
+                <button id="btn-mode-month" onclick="setViewMode('month')" class="small">月</button>
+              </div>
+            </div>
+            <div class="acc-section-title" id="dashboard-title">実績</div>
+            <div id="weekly-dashboard"></div>
+            <div class="acc-section-title">振り返り</div>
+            <div id="heatmap-area"></div>
           </div>
-          <div id="heatmap-area"></div>
         </div>
 
       </div>
@@ -804,6 +825,34 @@ function saveWeeklyHours() {
   renderWeeklyDashboard();
 }
 
+const ACC_KEY = 'pm_acc_state';
+function getAccState() {
+  try { return JSON.parse(localStorage.getItem(ACC_KEY)) || {}; } catch { return {}; }
+}
+function toggleAccordion(id) {
+  const card = document.getElementById(id);
+  if(!card) return;
+  const isOpen = card.classList.toggle('open');
+  const state = getAccState();
+  state[id] = isOpen;
+  try { localStorage.setItem(ACC_KEY, JSON.stringify(state)); } catch(e) {}
+}
+function initAccordions() {
+  const defaults = {
+    'time-card-effort': false,
+    'time-card-weekly-plan': true,
+    'time-card-today': true,
+    'time-card-nav': true,
+  };
+  const saved = getAccState();
+  Object.entries(defaults).forEach(([id, defaultOpen]) => {
+    const card = document.getElementById(id);
+    if(!card) return;
+    const isOpen = id in saved ? saved[id] : defaultOpen;
+    card.classList.toggle('open', isOpen);
+  });
+}
+
 function renderTimeMgmt() {
   renderEffortList();
   renderWeeklyPlan();
@@ -818,6 +867,7 @@ function renderTimeMgmt() {
   const bm = document.getElementById('btn-mode-month');
   if(bw) bw.className = viewMode === 'week' ? 'small primary' : 'small';
   if(bm) bm.className = viewMode === 'month' ? 'small primary' : 'small';
+  initAccordions();
 }
 
 function projectsByEffortRate() {
