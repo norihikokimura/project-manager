@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>プロジェクトマネージャー</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231c1c1a' rx='18'/><text x='50' y='46' font-family='system-ui,-apple-system,sans-serif' font-size='40' font-weight='700' fill='white' text-anchor='middle' dominant-baseline='central'>PM</text><rect x='22' y='82' width='56' height='6' fill='%231D9E75' rx='3'/></svg>">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="PJ Manager">
+<meta name="theme-color" content="#1c1c1a">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
   :root {
@@ -581,6 +586,38 @@ async function importData(e) {
   e.target.value='';
 }
 
+function generateAppIcon() {
+  const c = document.createElement('canvas');
+  c.width = 180; c.height = 180;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#1c1c1a';
+  ctx.fillRect(0, 0, 180, 180);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 72px system-ui, -apple-system, "Helvetica Neue", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('PM', 90, 83);
+  ctx.fillStyle = '#1D9E75';
+  const barX = 40, barY = 148, barW = 100, barH = 11, r = 5;
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(barX, barY, barW, barH, r);
+  } else {
+    ctx.moveTo(barX + r, barY);
+    ctx.arcTo(barX + barW, barY, barX + barW, barY + barH, r);
+    ctx.arcTo(barX + barW, barY + barH, barX, barY + barH, r);
+    ctx.arcTo(barX, barY + barH, barX, barY, r);
+    ctx.arcTo(barX, barY, barX + barW, barY, r);
+    ctx.closePath();
+  }
+  ctx.fill();
+  const link = document.createElement('link');
+  link.rel = 'apple-touch-icon';
+  link.href = c.toDataURL('image/png');
+  document.head.appendChild(link);
+}
+
+generateAppIcon();
 load();
 </script>
 </body>
