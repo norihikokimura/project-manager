@@ -255,7 +255,7 @@
             <span class="card-title">エフォート率の設定</span>
             <div style="display:flex;align-items:center;gap:8px;">
               <span class="form-label" style="white-space:nowrap;">週の稼働時間</span>
-              <input type="number" id="weekly-hours-input" min="1" max="168" style="width:64px;padding:4px 8px;font-size:13px;" oninput="saveWeeklyHours()" />
+              <input type="number" id="weekly-hours-input" min="1" max="168" style="width:64px;padding:4px 8px;font-size:13px;" oninput="saveWeeklyHours()" autocomplete="off" />
               <span class="form-label">h</span>
             </div>
           </div>
@@ -316,7 +316,7 @@
             </div>
             <div class="form-col">
               <span class="form-label">Gist ID（初回保存後に自動入力されます）</span>
-              <input type="text" id="gist-id-input" placeholder="（初回保存後に自動入力）" />
+              <input type="text" id="gist-id-input" placeholder="（初回保存後に自動入力）" autocomplete="off" />
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button class="primary" onclick="saveGistSettings()"><i class="ti ti-check"></i> 設定を保存</button>
@@ -333,7 +333,7 @@
             <button onclick="exportData()"><i class="ti ti-download"></i> データをエクスポート</button>
             <button onclick="document.getElementById('import-input').click()"><i class="ti ti-upload"></i> データをインポート</button>
           </div>
-          <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)" />
+          <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)" autocomplete="off" />
           <p style="font-size:11px;color:var(--text3);margin-top:8px;">エクスポートはJSONファイルとして保存されます</p>
         </div>
       </div>
@@ -352,7 +352,7 @@
         <div class="card">
           <div class="card-header" style="margin-bottom:8px;"><span class="card-title">タスク追加</span></div>
           <div class="field-gap">
-            <input type="text" id="task-input" placeholder="タスクを入力..." onkeydown="if(event.key==='Enter')addTask()" />
+            <input type="text" id="task-input" placeholder="タスクを入力..." onkeydown="if(event.key==='Enter')addTask()" autocomplete="off" />
             <div class="form-grid">
               <div class="form-col">
                 <span class="form-label">優先度</span>
@@ -374,7 +374,7 @@
             <div class="form-col">
               <span class="form-label">見積もり時間</span>
               <div style="display:flex;align-items:center;gap:6px;">
-                <input type="number" id="task-estimated" min="0.5" step="0.5" placeholder="見積もり（任意）" />
+                <input type="number" id="task-estimated" min="0.5" step="0.5" placeholder="見積もり（任意）" autocomplete="off" />
                 <span style="font-size:12px;color:var(--text2);">h</span>
               </div>
             </div>
@@ -404,7 +404,7 @@
             <div style="font-size:13px;color:var(--text2);">クリックしてMarkdownファイルを選択</div>
             <div style="font-size:11px;color:var(--text3);margin-top:3px;">.md / .txt</div>
           </div>
-          <input type="file" id="md-file-input" accept=".md,.txt" style="display:none;" onchange="handleMdUpload(event)" />
+          <input type="file" id="md-file-input" accept=".md,.txt" style="display:none;" onchange="handleMdUpload(event)" autocomplete="off" />
           <div id="md-preview-area" style="margin-top:10px;display:none;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
               <span class="form-label" id="md-filename"></span>
@@ -645,7 +645,7 @@ function renderRecordingArea(t, projectId) {
   return `<div class="task-record-area" style="margin-top:8px;padding:9px 11px;background:var(--info-bg);border-radius:var(--radius);">
     <div style="font-size:12px;color:var(--info-text);margin-bottom:6px;">実際にかかった時間は？</div>
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-      <input type="number" id="record-hours-${t.id}" min="0.5" step="0.5" value="${preset}" style="width:80px;font-size:13px;padding:5px 8px;" />
+      <input type="number" id="record-hours-${t.id}" min="0.5" step="0.5" value="${preset}" style="width:80px;font-size:13px;padding:5px 8px;" autocomplete="off" />
       <span style="font-size:12px;color:var(--text2);">h</span>
       <button class="small primary" onclick="currentProjectId=${projectId};saveActualHours(${t.id})">記録する</button>
       <button class="small" onclick="cancelRecording()">スキップ</button>
@@ -816,7 +816,7 @@ function renderEffortList() {
       <input class="effort-pct-input" type="number" min="0" max="120" value="${p.effortRate || 0}"
         onchange="saveEffortRate(${p.id}, this.value)"
         oninput="saveEffortRate(${p.id}, this.value)"
-        style="width:62px;text-align:center;padding:5px 8px;" />
+        style="width:62px;text-align:center;padding:5px 8px;" autocomplete="off" />
       <span style="font-size:13px;color:var(--text2);">%</span>
     </div>
   `).join('');
@@ -1034,7 +1034,7 @@ function renderTasks() {
       return `<div class="task-item editing" id="task-item-${t.id}">
         <div class="task-status-btn ${t.status}" title="編集中"></div>
         <div class="task-body">
-          <input type="text" id="edit-task-text-${t.id}" value="${esc(t.text)}" onkeydown="if(event.key==='Enter')saveTaskEdit(${t.id});else if(event.key==='Escape')cancelTaskEdit()" />
+          <input type="text" id="edit-task-text-${t.id}" value="${esc(t.text)}" onkeydown="if(event.key==='Enter')saveTaskEdit(${t.id});else if(event.key==='Escape')cancelTaskEdit()" autocomplete="off" />
           <div class="task-edit-row">
             <select id="edit-task-priority-${t.id}">
               <option value="high" ${t.priority==='high'?'selected':''}>優先度: 高</option>
@@ -1046,7 +1046,7 @@ function renderTasks() {
               <option value="doing" ${t.status==='doing'?'selected':''}>進行中</option>
               <option value="done" ${t.status==='done'?'selected':''}>完了</option>
             </select>
-            <input type="number" id="edit-task-estimated-${t.id}" min="0.5" step="0.5" placeholder="見積h" value="${t.estimatedHours != null ? t.estimatedHours : ''}" style="width:78px;font-size:12px;padding:4px 8px;" />
+            <input type="number" id="edit-task-estimated-${t.id}" min="0.5" step="0.5" placeholder="見積h" value="${t.estimatedHours != null ? t.estimatedHours : ''}" style="width:78px;font-size:12px;padding:4px 8px;" autocomplete="off" />
             <button class="small primary" onclick="saveTaskEdit(${t.id})"><i class="ti ti-check"></i> 保存</button>
             <button class="small" onclick="cancelTaskEdit()">キャンセル</button>
           </div>
@@ -1114,7 +1114,7 @@ function renderAllTasks() {
       return `<div class="task-item editing" id="task-item-${t.id}">
         <div class="task-status-btn ${t.status}" title="編集中"></div>
         <div class="task-body">
-          <input type="text" id="edit-task-text-${t.id}" value="${esc(t.text)}" onkeydown="if(event.key==='Enter'){currentProjectId=${p.id};saveTaskEdit(${t.id})}else if(event.key==='Escape')cancelTaskEdit()" />
+          <input type="text" id="edit-task-text-${t.id}" value="${esc(t.text)}" onkeydown="if(event.key==='Enter'){currentProjectId=${p.id};saveTaskEdit(${t.id})}else if(event.key==='Escape')cancelTaskEdit()" autocomplete="off" />
           <div class="task-edit-row">
             <select id="edit-task-priority-${t.id}">
               <option value="high" ${t.priority==='high'?'selected':''}>優先度: 高</option>
@@ -1126,7 +1126,7 @@ function renderAllTasks() {
               <option value="doing" ${t.status==='doing'?'selected':''}>進行中</option>
               <option value="done" ${t.status==='done'?'selected':''}>完了</option>
             </select>
-            <input type="number" id="edit-task-estimated-${t.id}" min="0.5" step="0.5" placeholder="見積h" value="${t.estimatedHours != null ? t.estimatedHours : ''}" style="width:78px;font-size:12px;padding:4px 8px;" />
+            <input type="number" id="edit-task-estimated-${t.id}" min="0.5" step="0.5" placeholder="見積h" value="${t.estimatedHours != null ? t.estimatedHours : ''}" style="width:78px;font-size:12px;padding:4px 8px;" autocomplete="off" />
             <button class="small primary" onclick="currentProjectId=${p.id};saveTaskEdit(${t.id})"><i class="ti ti-check"></i> 保存</button>
             <button class="small" onclick="cancelTaskEdit()">キャンセル</button>
           </div>
@@ -1343,13 +1343,13 @@ function showAddModal() {
   document.getElementById('modal-body').innerHTML = `
     <div style="font-size:15px;font-weight:600;color:var(--text);">新しいプロジェクト</div>
     <div class="field-gap">
-      <div class="form-col"><span class="form-label">プロジェクト名 *</span><input type="text" id="new-name" placeholder="名前を入力" /></div>
-      <div class="form-col"><span class="form-label">概要</span><input type="text" id="new-desc" placeholder="（任意）" /></div>
+      <div class="form-col"><span class="form-label">プロジェクト名 *</span><input type="text" id="new-name" placeholder="名前を入力" autocomplete="off" /></div>
+      <div class="form-col"><span class="form-label">概要</span><input type="text" id="new-desc" placeholder="（任意）" autocomplete="off" /></div>
       <div class="form-col"><span class="form-label">ステータス</span>
         <select id="new-status"><option>進行中</option><option>計画中</option><option>完了</option><option>保留</option></select>
       </div>
       <div class="form-col"><span class="form-label">エフォート率（%）</span>
-        <input type="number" id="new-effort" min="0" max="120" value="${suggested}" placeholder="0" />
+        <input type="number" id="new-effort" min="0" max="120" value="${suggested}" placeholder="0" autocomplete="off" />
         <span style="font-size:11px;color:var(--text3);">現在の合計: ${currentTotal}%　残り: ${100 - currentTotal}%</span>
       </div>
       <div class="form-col"><span class="form-label">カラー</span>
@@ -1382,13 +1382,13 @@ function showEditProjectModal(id) {
   document.getElementById('modal-body').innerHTML = `
     <div style="font-size:15px;font-weight:600;color:var(--text);">プロジェクトを編集</div>
     <div class="field-gap">
-      <div class="form-col"><span class="form-label">プロジェクト名 *</span><input type="text" id="edit-name" value="${esc(p.name)}" /></div>
-      <div class="form-col"><span class="form-label">概要</span><input type="text" id="edit-desc" value="${esc(p.desc || '')}" placeholder="（任意）" /></div>
+      <div class="form-col"><span class="form-label">プロジェクト名 *</span><input type="text" id="edit-name" value="${esc(p.name)}" autocomplete="off" /></div>
+      <div class="form-col"><span class="form-label">概要</span><input type="text" id="edit-desc" value="${esc(p.desc || '')}" placeholder="（任意）" autocomplete="off" /></div>
       <div class="form-col"><span class="form-label">ステータス</span>
         <select id="edit-status">${statuses.map(s => `<option ${s===p.status?'selected':''}>${s}</option>`).join('')}</select>
       </div>
       <div class="form-col"><span class="form-label">エフォート率（%）</span>
-        <input type="number" id="edit-effort" min="0" max="120" value="${p.effortRate || 0}" />
+        <input type="number" id="edit-effort" min="0" max="120" value="${p.effortRate || 0}" autocomplete="off" />
         <span style="font-size:11px;color:var(--text3);">他プロジェクトの合計: ${currentTotal}%</span>
       </div>
       <div class="form-col"><span class="form-label">カラー</span>
