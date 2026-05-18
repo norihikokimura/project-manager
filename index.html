@@ -805,11 +805,15 @@ function renderTimeMgmt() {
   if(bm) bm.className = viewMode === 'month' ? 'small primary' : 'small';
 }
 
+function projectsByEffortRate() {
+  return [...projects].sort((a, b) => (b.effortRate || 0) - (a.effortRate || 0));
+}
+
 function renderEffortList() {
   const total = projects.reduce((s, p) => s + (p.effortRate || 0), 0);
   const totalClass = total === 100 ? 'effort-total-ok' : total < 100 ? 'effort-total-warn' : 'effort-total-over';
   const totalMsg = total === 100 ? '✓ 合計100%' : total < 100 ? `合計 ${total}%（残り ${100 - total}%）` : `合計 ${total}%（+${total - 100}% ストレッチ）`;
-  const rows = projects.map(p => `
+  const rows = projectsByEffortRate().map(p => `
     <div class="effort-row">
       <div class="effort-dot" style="background:${p.color}"></div>
       <div class="effort-name">${esc(p.name)}</div>
@@ -837,7 +841,7 @@ function renderDailyLog() {
   if(el) el.textContent = label;
 
   const todayTotal = projects.reduce((s, p) => s + getLogHours(today, p.id), 0);
-  const rows = projects.map(p => {
+  const rows = projectsByEffortRate().map(p => {
     const hrs = getLogHours(today, p.id);
     return `<div class="log-row">
       <div class="log-dot" style="background:${p.color}"></div>
@@ -859,7 +863,7 @@ function renderDailyLog() {
 
 function renderWeeklyDashboard() {
   updatePeriodNav();
-  const rows = projects.map(p => {
+  const rows = projectsByEffortRate().map(p => {
     const target = Math.round(getPeriodTargetHours(p) * 10) / 10;
     const actual = Math.round(getPeriodHours(p.id) * 10) / 10;
     const barMax = Math.max(target * 1.25, actual, 0.5);
@@ -935,7 +939,7 @@ function renderHeatmap() {
     </div>`;
   }
 
-  const projRows = projects.map(p => {
+  const projRows = projectsByEffortRate().map(p => {
     const rgb = hexToRgb(p.color);
     const cells = dates.map((d, i) => {
       const hrs = getLogHours(d, p.id);
