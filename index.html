@@ -68,8 +68,10 @@
   button.danger-btn { color: #A32D2D; border-color: #F7C1C1; }
   button.danger-btn:hover { background: #FCEBEB; }
   button.small { padding: 4px 10px; font-size: 12px; }
-  button.icon-btn { padding: 4px 7px; border: 0.5px solid transparent; background: transparent; color: var(--text3); }
-  button.icon-btn:hover { background: var(--bg2); color: #A32D2D; border-color: #F7C1C1; border-radius: var(--radius); }
+  button.icon-btn { padding: 4px 7px; border: 0.5px solid transparent; background: transparent; color: var(--text3); border-radius: var(--radius); }
+  button.icon-btn:hover { background: var(--bg2); color: var(--text); }
+  button.icon-btn.danger:hover { color: #A32D2D; border-color: #F7C1C1; }
+  .project-card-actions { display: flex; gap: 2px; flex-shrink: 0; }
   .back-btn { display: flex; align-items: center; gap: 4px; font-size: 13px; flex-shrink: 0; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .form-col { display: flex; flex-direction: column; gap: 4px; }
@@ -93,9 +95,13 @@
   .badge-doing { background: #E6F1FB; color: #185FA5; }
   .badge-todo { background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border); }
   .badge-done { background: #E1F5EE; color: #0F6E56; }
-  .task-delete { color: var(--text3); cursor: pointer; font-size: 13px; opacity: 0; transition: opacity 0.15s; padding: 3px 5px; flex-shrink: 0; background: none; border: none; border-radius: var(--radius); }
-  .task-item:hover .task-delete { opacity: 1; }
-  .task-delete:hover { background: var(--bg); color: #A32D2D; }
+  .task-action { color: var(--text3); cursor: pointer; font-size: 13px; opacity: 0; transition: opacity 0.15s; padding: 3px 5px; flex-shrink: 0; background: none; border: none; border-radius: var(--radius); }
+  .task-item:hover .task-action { opacity: 1; }
+  .task-action:hover { background: var(--bg); color: var(--text); }
+  .task-action.danger:hover { background: var(--bg); color: #A32D2D; }
+  .task-edit-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+  .task-edit-row select { width: auto; font-size: 12px; padding: 4px 8px; }
+  .task-item.editing { background: var(--bg); border-color: var(--border2); }
   .md-upload-area { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 1rem; text-align: center; cursor: pointer; transition: all 0.15s; }
   .md-upload-area:hover { border-color: var(--text2); background: var(--bg2); }
   .md-upload-area.has-file { background: var(--info-bg); border-color: #B5D4F4; border-style: solid; }
@@ -225,7 +231,7 @@
 </div>
 
 <script>
-let projects = [], currentProjectId = null;
+let projects = [], currentProjectId = null, editingTaskId = null;
 const COLORS = ['#1D9E75','#378ADD','#D85A30','#BA7517','#7F77DD','#D4537E','#639922','#533F6B'];
 
 function save() { try { localStorage.setItem('pm_projects', JSON.stringify(projects)); } catch(e) {} }
@@ -274,7 +280,10 @@ function renderProjectGrid() {
       <div class="project-card-header">
         <div class="project-dot" style="background:${p.color}"></div>
         <div class="project-card-name">${p.name}</div>
-        <button class="icon-btn" onclick="event.stopPropagation();confirmDeleteProject(${p.id})" title="削除"><i class="ti ti-trash" style="font-size:14px;"></i></button>
+        <div class="project-card-actions">
+          <button class="icon-btn" onclick="event.stopPropagation();showEditProjectModal(${p.id})" title="編集"><i class="ti ti-pencil" style="font-size:14px;"></i></button>
+          <button class="icon-btn danger" onclick="event.stopPropagation();confirmDeleteProject(${p.id})" title="削除"><i class="ti ti-trash" style="font-size:14px;"></i></button>
+        </div>
       </div>
       ${p.desc?`<div class="project-card-desc">${p.desc}</div>`:''}
       <div class="progress-label"><span>${done}/${tasks.length} 完了</span><span>${pct}%</span></div>
@@ -350,6 +359,40 @@ function addProject() {
   save(); render();
 }
 
+function esc(s) { return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+
+function showEditProjectModal(id) {
+  const p=projects.find(x=>x.id===id); if(!p) return;
+  const statuses=['進行中','計画中','完了','保留'];
+  showModal('プロジェクトを編集',
+    `<div class="field-gap" style="margin-top:4px;">
+      <div class="form-col"><span class="form-label">プロジェクト名</span><input type="text" id="edit-name" value="${esc(p.name)}" /></div>
+      <div class="form-col"><span class="form-label">概要</span><input type="text" id="edit-desc" value="${esc(p.desc)}" placeholder="（任意）" /></div>
+      <div class="form-col"><span class="form-label">ステータス</span>
+        <select id="edit-status">${statuses.map(s=>`<option ${s===p.status?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="form-col"><span class="form-label">カラー</span>
+        <div class="color-row" id="edit-color-row">
+          ${COLORS.map(c=>`<div class="color-dot ${c===p.color?'selected':''}" style="background:${c}" data-color="${c}" onclick="selectEditColor(this)"></div>`).join('')}
+        </div></div>
+    </div>`,
+    [{ label:'キャンセル' }, { label:'保存', cls:'primary', action:()=>saveEditProject(id) }]);
+  setTimeout(()=>document.getElementById('edit-name')?.focus(),50);
+}
+function selectEditColor(el) {
+  document.querySelectorAll('#edit-color-row .color-dot').forEach(d=>d.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function saveEditProject(id) {
+  const p=projects.find(x=>x.id===id); if(!p) return;
+  const name=document.getElementById('edit-name')?.value.trim(); if(!name) return;
+  p.name=name;
+  p.desc=document.getElementById('edit-desc').value.trim();
+  p.status=document.getElementById('edit-status').value;
+  const sel=document.querySelector('#edit-color-row .color-dot.selected');
+  if(sel) p.color=sel.dataset.color;
+  save(); render();
+}
+
 function renderTasks() {
   const p=projects.find(x=>x.id===currentProjectId); if(!p) return;
   const filter=document.getElementById('filter-status')?.value||'all';
@@ -361,8 +404,30 @@ function renderTasks() {
   const prL={high:'高',mid:'中',low:'低'},prB={high:'badge-high',mid:'badge-mid',low:'badge-low'};
   const el=document.getElementById('task-list');
   if(!sorted.length){el.innerHTML=`<div class="empty">タスクがありません</div>`;return;}
-  el.innerHTML=sorted.map(t=>`
-    <div class="task-item">
+  el.innerHTML=sorted.map(t=>{
+    if(t.id===editingTaskId) {
+      return `<div class="task-item editing">
+        <div class="task-status-btn ${t.status}" title="編集中"></div>
+        <div class="task-body">
+          <input type="text" id="edit-task-text-${t.id}" value="${esc(t.text)}" onkeydown="if(event.key==='Enter')saveTaskEdit(${t.id});else if(event.key==='Escape')cancelTaskEdit()" />
+          <div class="task-edit-row">
+            <select id="edit-task-priority-${t.id}">
+              <option value="high" ${t.priority==='high'?'selected':''}>優先度: 高</option>
+              <option value="mid" ${t.priority==='mid'?'selected':''}>優先度: 中</option>
+              <option value="low" ${t.priority==='low'?'selected':''}>優先度: 低</option>
+            </select>
+            <select id="edit-task-status-${t.id}">
+              <option value="todo" ${t.status==='todo'?'selected':''}>未着手</option>
+              <option value="doing" ${t.status==='doing'?'selected':''}>進行中</option>
+              <option value="done" ${t.status==='done'?'selected':''}>完了</option>
+            </select>
+            <button class="small primary" onclick="saveTaskEdit(${t.id})"><i class="ti ti-check"></i> 保存</button>
+            <button class="small" onclick="cancelTaskEdit()">キャンセル</button>
+          </div>
+        </div>
+      </div>`;
+    }
+    return `<div class="task-item">
       <div class="task-status-btn ${t.status}" onclick="cycleTaskStatus(${t.id})" title="クリックでステータス変更"></div>
       <div class="task-body">
         <div class="task-text ${t.status==='done'?'done':''}">${t.text}</div>
@@ -371,8 +436,11 @@ function renderTasks() {
           <span class="badge ${stB[t.status]}">${stL[t.status]}</span>
         </div>
       </div>
-      <button class="task-delete" onclick="confirmDeleteTask(${t.id})"><i class="ti ti-trash"></i></button>
-    </div>`).join('');
+      <button class="task-action" onclick="startTaskEdit(${t.id})" title="編集"><i class="ti ti-pencil"></i></button>
+      <button class="task-action danger" onclick="confirmDeleteTask(${t.id})" title="削除"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('');
+  if(editingTaskId) setTimeout(()=>document.getElementById(`edit-task-text-${editingTaskId}`)?.focus(),50);
 }
 function addTask() {
   const text=document.getElementById('task-input').value.trim(); if(!text) return;
@@ -394,7 +462,20 @@ function confirmDeleteTask(taskId) {
 }
 function deleteTask(taskId) {
   const p=projects.find(x=>x.id===currentProjectId); if(!p) return;
-  p.tasks=p.tasks.filter(t=>t.id!==taskId); save(); renderTasks(); renderStats();
+  p.tasks=p.tasks.filter(t=>t.id!==taskId);
+  if(editingTaskId===taskId) editingTaskId=null;
+  save(); renderTasks(); renderStats();
+}
+function startTaskEdit(taskId) { editingTaskId=taskId; renderTasks(); }
+function cancelTaskEdit() { editingTaskId=null; renderTasks(); }
+function saveTaskEdit(taskId) {
+  const p=projects.find(x=>x.id===currentProjectId), t=p?.tasks?.find(x=>x.id===taskId); if(!t) return;
+  const text=document.getElementById(`edit-task-text-${taskId}`)?.value.trim(); if(!text) return;
+  t.text=text;
+  t.priority=document.getElementById(`edit-task-priority-${taskId}`).value;
+  t.status=document.getElementById(`edit-task-status-${taskId}`).value;
+  editingTaskId=null;
+  save(); renderTasks(); renderStats();
 }
 
 function loadContextTab(p) {
