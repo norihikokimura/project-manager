@@ -337,6 +337,14 @@
 
       <div class="panel" id="panel-settings">
         <div class="card">
+          <div class="card-header"><span class="card-title">レポート・配分設定</span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="showWeeklyReport()"><i class="ti ti-report"></i> 週次レポート</button>
+            <button onclick="showWeeklyPlan()"><i class="ti ti-percentage"></i> エフォート率を設定</button>
+          </div>
+          <p style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.6;">週次レポートは月〜日の完了タスクをプロジェクト別に集計します。エフォート率は各プロジェクトへの時間配分（%）です。</p>
+        </div>
+        <div class="card">
           <div class="card-header"><span class="card-title">☁️ GitHub Gist 同期</span></div>
           <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6;">GitHub Personal Access Tokenを設定すると、どのデバイスからでも同じデータにアクセスできます。TokenはローカルストレージにのみHTMLから保存されます。</p>
           <div class="field-gap">
@@ -638,7 +646,7 @@ function renderProjectGrid() {
     const done = tasks.filter(t => t.status === 'done').length;
     const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0;
     const hasMd = !!(p.mdContent || p.mdText);
-    const effortRate = p.effortRate || 0;
+    const effortRateSet = p.effortRate != null;
     return `<div class="project-card" onclick="openProject(${p.id})">
       <div class="project-card-header">
         <div class="project-dot" style="background:${p.color}"></div>
@@ -652,7 +660,7 @@ function renderProjectGrid() {
       <div class="progress-label"><span>${done}/${tasks.length} 完了</span><span>${pct}%</span></div>
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${p.color}"></div></div>
       <div class="task-count">${tasks.filter(t=>t.status==='doing').length} 件進行中・${tasks.filter(t=>t.status==='todo').length} 件未着手</div>
-      ${effortRate ? `<div style="font-size:11px;color:var(--text3);margin-top:5px;">エフォート ${effortRate}%</div>` : ''}
+      ${effortRateSet ? `<div style="font-size:11px;color:var(--text3);margin-top:5px;">エフォート ${p.effortRate}%</div>` : ''}
       ${hasMd ? `<div><span class="md-badge"><i class="ti ti-file-check" style="font-size:11px;"></i> MD読込済</span></div>` : ''}
     </div>`;
   }).join('');
@@ -811,7 +819,12 @@ function addLog(projectId, delta) {
 function saveEffortRate(projectId, val) {
   const p = projects.find(x => x.id === projectId);
   if(!p) return;
-  p.effortRate = Math.max(0, Math.min(120, parseInt(val) || 0));
+  if(val === '' || val == null) {
+    p.effortRate = null;
+  } else {
+    const v = parseFloat(val);
+    p.effortRate = isNaN(v) ? null : Math.max(0, Math.min(200, v));
+  }
   save();
   renderEffortList();
   renderWeeklyDashboard();
@@ -962,7 +975,8 @@ function renderEffortList() {
     <div class="effort-row">
       <div class="effort-dot" style="background:${p.color}"></div>
       <div class="effort-name">${esc(p.name)}</div>
-      <input class="effort-pct-input" type="number" min="0" max="120" value="${p.effortRate || 0}"
+      <input class="effort-pct-input" type="number" min="0" max="200" value="${p.effortRate != null ? p.effortRate : ''}"
+        placeholder="0"
         onchange="saveEffortRate(${p.id}, this.value)"
         oninput="saveEffortRate(${p.id}, this.value)"
         style="width:62px;text-align:center;padding:5px 8px;" autocomplete="off" />
@@ -1341,6 +1355,8 @@ function cycleTaskStatus(taskId) {
   if(!t) return;
   const wasDone = t.status === 'done';
   t.status = {todo:'doing',doing:'done',done:'todo'}[t.status];
+  if(t.status === 'done' && !wasDone) t.completedAt = Date.now();
+  if(t.status !== 'done') t.completedAt = null;
   if(t.status === 'done' && !wasDone && t.actualHours == null) {
     recordingTaskId = taskId;
   } else if(t.status !== 'done' && recordingTaskId === taskId) {
@@ -1372,6 +1388,8 @@ function saveTaskEdit(taskId) {
   const estVal = document.getElementById(`edit-task-estimated-${taskId}`)?.value;
   if(estVal === '' || estVal == null) delete t.estimatedHours;
   else if(!isNaN(parseFloat(estVal))) t.estimatedHours = parseFloat(estVal);
+  if(t.status === 'done' && !wasDone) t.completedAt = Date.now();
+  if(t.status !== 'done') t.completedAt = null;
   if(t.status === 'done' && !wasDone && t.actualHours == null) {
     recordingTaskId = taskId;
   } else if(t.status !== 'done' && recordingTaskId === taskId) {
@@ -1504,7 +1522,7 @@ function showAddModal() {
         <select id="new-status"><option>進行中</option><option>計画中</option><option>完了</option><option>保留</option></select>
       </div>
       <div class="form-col"><span class="form-label">エフォート率（%）</span>
-        <input type="number" id="new-effort" min="0" max="120" value="${suggested}" placeholder="0" autocomplete="off" />
+        <input type="number" id="new-effort" min="0" max="200" value="${suggested}" placeholder="未設定" autocomplete="off" />
         <span style="font-size:11px;color:var(--text3);">現在の合計: ${currentTotal}%　残り: ${100 - currentTotal}%</span>
       </div>
       <div class="form-col"><span class="form-label">カラー</span>
@@ -1543,7 +1561,7 @@ function showEditProjectModal(id) {
         <select id="edit-status">${statuses.map(s => `<option ${s===p.status?'selected':''}>${s}</option>`).join('')}</select>
       </div>
       <div class="form-col"><span class="form-label">エフォート率（%）</span>
-        <input type="number" id="edit-effort" min="0" max="120" value="${p.effortRate || 0}" autocomplete="off" />
+        <input type="number" id="edit-effort" min="0" max="200" value="${p.effortRate != null ? p.effortRate : ''}" placeholder="未設定" autocomplete="off" />
         <span style="font-size:11px;color:var(--text3);">他プロジェクトの合計: ${currentTotal}%</span>
       </div>
       <div class="form-col"><span class="form-label">カラー</span>
@@ -1574,7 +1592,13 @@ function saveEditProject(id) {
   p.name = name;
   p.desc = document.getElementById('edit-desc').value.trim();
   p.status = document.getElementById('edit-status').value;
-  p.effortRate = Math.max(0, Math.min(120, parseInt(document.getElementById('edit-effort').value) || 0));
+  const editEffortVal = document.getElementById('edit-effort').value;
+  if(editEffortVal === '' || editEffortVal == null) {
+    p.effortRate = null;
+  } else {
+    const ev = parseFloat(editEffortVal);
+    p.effortRate = isNaN(ev) ? null : Math.max(0, Math.min(200, ev));
+  }
   const sel = document.querySelector('#edit-color-row .color-dot.selected');
   if(sel) p.color = sel.dataset.color;
   save(); closeModal(); render(); renderTimeMgmt();
@@ -1585,9 +1609,183 @@ function addProject() {
   if(!name) return;
   const sel = document.querySelector('#color-row .color-dot.selected');
   const color = sel ? sel.dataset.color : COLORS[0];
-  const effortRate = Math.max(0, Math.min(120, parseInt(document.getElementById('new-effort')?.value) || 0));
+  const newEffortVal = document.getElementById('new-effort')?.value;
+  let effortRate;
+  if(newEffortVal === '' || newEffortVal == null) {
+    effortRate = null;
+  } else {
+    const nv = parseFloat(newEffortVal);
+    effortRate = isNaN(nv) ? null : Math.max(0, Math.min(200, nv));
+  }
   projects.push({ id: Date.now(), name, desc: document.getElementById('new-desc').value.trim(), status: document.getElementById('new-status').value, color, effortRate, tasks: [], mdContent: '', mdFilename: '', mdText: '' });
   save(); closeModal(); render(); renderTimeMgmt();
+}
+
+function showWeeklyReport() {
+  const weekDates = getWeekDates();
+  const monStart = new Date(weekDates[0] + 'T00:00:00').getTime();
+  const sunEnd = new Date(weekDates[6] + 'T23:59:59.999').getTime();
+  const monday = new Date(weekDates[0]);
+  const sunday = new Date(weekDates[6]);
+  const rangeLabel = `${monday.getMonth()+1}/${monday.getDate()}（月）〜 ${sunday.getMonth()+1}/${sunday.getDate()}（日）`;
+
+  const completedByProject = new Map();
+  let totalDoing = 0;
+  const activeProjectIds = new Set();
+  for(const p of projects) {
+    const tasks = p.tasks || [];
+    const completedThisWeek = tasks.filter(t =>
+      t.status === 'done' && t.completedAt && t.completedAt >= monStart && t.completedAt <= sunEnd
+    );
+    if(completedThisWeek.length) {
+      completedByProject.set(p.id, completedThisWeek);
+      activeProjectIds.add(p.id);
+    }
+    const doingCount = tasks.filter(t => t.status === 'doing').length;
+    totalDoing += doingCount;
+    if(doingCount > 0) activeProjectIds.add(p.id);
+  }
+  const totalCompleted = [...completedByProject.values()].reduce((s, arr) => s + arr.length, 0);
+
+  const summaryHtml = `
+    <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat"><div class="stat-num">${totalCompleted}</div><div class="stat-label">今週完了</div></div>
+      <div class="stat"><div class="stat-num">${totalDoing}</div><div class="stat-label">進行中</div></div>
+      <div class="stat"><div class="stat-num">${activeProjectIds.size}</div><div class="stat-label">活動プロジェクト</div></div>
+    </div>`;
+
+  const prL = {high:'高',mid:'中',low:'低'}, prB = {high:'badge-high',mid:'badge-mid',low:'badge-low'};
+  const projectSections = projectsByEffortRate()
+    .filter(p => completedByProject.has(p.id))
+    .map(p => {
+      const tasks = completedByProject.get(p.id);
+      const effortHtml = p.effortRate != null
+        ? `<span style="font-size:11px;color:var(--text3);">エフォート ${p.effortRate}%</span>`
+        : '';
+      const taskItems = tasks
+        .slice()
+        .sort((a, b) => (a.completedAt || 0) - (b.completedAt || 0))
+        .map(t => {
+          const d = new Date(t.completedAt);
+          const dayLabel = `${d.getMonth()+1}/${d.getDate()}（${'日月火水木金土'[d.getDay()]}）`;
+          const actualHtml = t.actualHours != null ? `<span class="badge badge-done">実績 ${t.actualHours}h</span>` : '';
+          return `<div style="padding:7px 0;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;gap:8px;">
+            <span style="font-size:11px;color:var(--text3);min-width:62px;">${dayLabel}</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;color:var(--text);line-height:1.5;">${esc(t.text)}</div>
+              <div style="display:flex;gap:6px;margin-top:3px;flex-wrap:wrap;">
+                <span class="badge ${prB[t.priority]}">${prL[t.priority]}</span>
+                ${actualHtml}
+              </div>
+            </div>
+          </div>`;
+        }).join('');
+      return `<div style="margin-top:14px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="width:10px;height:10px;border-radius:50%;background:${p.color};display:inline-block;flex-shrink:0;"></span>
+          <span style="font-size:13px;font-weight:600;color:var(--text);flex:1;">${esc(p.name)}</span>
+          <span style="font-size:11px;color:var(--text2);">${tasks.length}件</span>
+          ${effortHtml}
+        </div>
+        <div>${taskItems}</div>
+      </div>`;
+    }).join('');
+
+  const body = `
+    <div style="font-size:15px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px;">
+      <i class="ti ti-report" style="font-size:18px;"></i>週次レポート
+    </div>
+    <div style="font-size:12px;color:var(--text2);">${rangeLabel}</div>
+    ${summaryHtml}
+    <div style="max-height:50vh;overflow-y:auto;margin:0 -4px;padding:0 4px;">
+      ${projectSections || '<div class="empty">今週はまだ完了タスクがありません</div>'}
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="closeModal()">閉じる</button>
+    </div>
+  `;
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function showWeeklyPlan() {
+  const activeProjects = projects.filter(p => p.status === '進行中' || p.status === '計画中');
+  if(!activeProjects.length) {
+    document.getElementById('modal-body').innerHTML = `
+      <div style="font-size:15px;font-weight:600;color:var(--text);">エフォート率の設定</div>
+      <div class="empty">進行中・計画中のプロジェクトがありません</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="closeModal()">閉じる</button>
+      </div>
+    `;
+    document.getElementById('modal-overlay').style.display = 'flex';
+    return;
+  }
+  const sorted = [...activeProjects].sort((a, b) => (b.effortRate || 0) - (a.effortRate || 0));
+  const rows = sorted.map(p => `
+    <div class="effort-row">
+      <div class="effort-dot" style="background:${p.color}"></div>
+      <div class="effort-name">${esc(p.name)}</div>
+      <input class="effort-pct-input" type="number" id="modal-effort-${p.id}" min="0" max="200"
+        value="${p.effortRate != null ? p.effortRate : ''}" placeholder="0"
+        oninput="updateEffortModalTotal()" autocomplete="off" />
+      <span style="font-size:13px;color:var(--text2);">%</span>
+    </div>
+  `).join('');
+  document.getElementById('modal-body').innerHTML = `
+    <div style="font-size:15px;font-weight:600;color:var(--text);">エフォート率の設定</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;">進行中・計画中のプロジェクトに時間配分を%で設定します。合計100%が基準、120%はストレッチ目標です。</p>
+    <div id="modal-effort-list">${rows}</div>
+    <div class="effort-total-row">
+      <span style="color:var(--text2);font-size:13px;">合計</span>
+      <span id="modal-effort-total" class="effort-total-num"></span>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="closeModal()">キャンセル</button>
+      <button class="primary" onclick="saveEffortModal()"><i class="ti ti-check"></i> 保存</button>
+    </div>
+  `;
+  document.getElementById('modal-overlay').style.display = 'flex';
+  updateEffortModalTotal();
+}
+
+function updateEffortModalTotal() {
+  let total = 0;
+  document.querySelectorAll('#modal-effort-list .effort-pct-input').forEach(inp => {
+    const v = parseFloat(inp.value);
+    if(!isNaN(v)) total += v;
+  });
+  const el = document.getElementById('modal-effort-total');
+  if(!el) return;
+  const t = Math.round(total * 10) / 10;
+  let cls = 'effort-total-ok', msg;
+  if(t > 120) { cls = 'effort-total-over'; msg = `${t}%（+${Math.round((t-100)*10)/10}% ⚠ ストレッチ超過）`; }
+  else if(t > 100) { cls = 'effort-total-warn'; msg = `${t}%（+${Math.round((t-100)*10)/10}% ストレッチ）`; }
+  else if(Math.abs(t - 100) < 0.01) { msg = `${t}% ✓`; }
+  else { msg = `${t}%（残り ${Math.round((100-t)*10)/10}%）`; }
+  el.textContent = msg;
+  el.className = `effort-total-num ${cls}`;
+}
+
+function saveEffortModal() {
+  document.querySelectorAll('#modal-effort-list .effort-pct-input').forEach(inp => {
+    const m = inp.id.match(/^modal-effort-(\d+)$/);
+    if(!m) return;
+    const pid = parseInt(m[1]);
+    const p = projects.find(x => x.id === pid);
+    if(!p) return;
+    const raw = inp.value;
+    if(raw === '' || raw == null) {
+      p.effortRate = null;
+    } else {
+      const v = parseFloat(raw);
+      p.effortRate = isNaN(v) ? null : Math.max(0, Math.min(200, v));
+    }
+  });
+  save();
+  closeModal();
+  render();
+  renderTimeMgmt();
 }
 
 function exportData() {
