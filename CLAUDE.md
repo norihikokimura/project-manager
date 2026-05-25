@@ -20,3 +20,10 @@ GitHub Gist でデータを同期する。
 - 毎日夜に30分単位でタップ記録（スマホ想定）
 - 週/月の実績 vs 目標を横バーで表示
 - ヒートマップで振り返り
+
+## 開発・デプロイ環境
+- 開発: WSL + VS Code + Claude Code
+- リポジトリ: https://github.com/norihikokimura/project-manager（public）
+- 公開URL: https://norihikokimura.github.io/project-manager/
+- デプロイ: `git push origin main` → GitHub Pagesが自動反映
+- ※ 以前はNetlifyを使用していたが、クレジット制限（300/月）に抵触したためGitHub Pagesに移行済み
