@@ -143,6 +143,25 @@
   .task-memo-link:hover { text-decoration: underline; }
   .memo-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--info-text); flex-shrink: 0; margin-top: 1px; }
 
+  /* ---- タスクグルーピング ---- */
+  .task-list.grouped { gap: 18px; }
+  .task-group-status { display: flex; flex-direction: column; gap: 10px; }
+  .task-group-status-header { display: flex; align-items: center; gap: 8px; padding-bottom: 7px; border-bottom: 0.5px solid var(--border); }
+  .task-group-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .task-group-status-dot.todo { background: var(--text3); }
+  .task-group-status-dot.doing { background: #378ADD; }
+  .task-group-status-dot.done { background: #1D9E75; }
+  .task-group-status-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .task-group-status-count { font-size: 12px; color: var(--text2); margin-left: auto; }
+  .task-group-priority { display: flex; flex-direction: column; gap: 6px; }
+  .task-group-priority + .task-group-priority { margin-top: 8px; }
+  .task-group-priority-header { display: flex; align-items: center; gap: 6px; padding-left: 2px; }
+  .task-group-priority-marker { width: 3px; height: 13px; border-radius: 2px; flex-shrink: 0; }
+  .task-group-priority-marker.high { background: #A32D2D; }
+  .task-group-priority-marker.mid { background: #BA7517; }
+  .task-group-priority-marker.low { background: #3B6D11; }
+  .task-group-priority-title { font-size: 11px; color: var(--text2); font-weight: 500; }
+
   /* ---- 時間管理 スタイル ---- */
   .effort-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
   .effort-row:last-child { border-bottom: none; }
@@ -229,6 +248,10 @@
     .card { padding: 0.75rem 1rem; }
     .task-item { padding: 8px 10px; }
     .stat { padding: 8px 10px; }
+
+    .task-group-status-title { font-size: 15px; }
+    .task-group-status-count { font-size: 12px; }
+    .task-group-priority-title { font-size: 12px; }
   }
 </style>
 </head>
@@ -1205,81 +1228,131 @@ function switchProjectTab(tab) {
   });
 }
 
+const TASK_STATUS_ORDER = ['todo', 'doing', 'done'];
+const TASK_PRIORITY_ORDER = ['high', 'mid', 'low'];
+const TASK_STATUS_LABEL = { todo: '未着手', doing: '進行中', done: '完了' };
+const TASK_PRIORITY_LABEL = { high: '高', mid: '中', low: '低' };
+
+function renderTaskItemHtml(t, p, includeProjectBadge) {
+  const stL = TASK_STATUS_LABEL, stB = {todo:'badge-todo',doing:'badge-doing',done:'badge-done'};
+  const prL = TASK_PRIORITY_LABEL, prB = {high:'badge-high',mid:'badge-mid',low:'badge-low'};
+  if(t.id === editingTaskId) {
+    return `<div class="task-item editing" id="task-item-${t.id}">
+      <div class="task-status-btn ${t.status}" title="編集中"></div>
+      <div class="task-body">
+        <input type="text" id="edit-task-text-${t.id}" value="${esc(t.text)}" onkeydown="if(event.key==='Enter'){currentProjectId=${p.id};saveTaskEdit(${t.id})}else if(event.key==='Escape')cancelTaskEdit()" autocomplete="off" />
+        <div class="task-edit-row">
+          <select id="edit-task-priority-${t.id}">
+            <option value="high" ${t.priority==='high'?'selected':''}>優先度: 高</option>
+            <option value="mid" ${t.priority==='mid'?'selected':''}>優先度: 中</option>
+            <option value="low" ${t.priority==='low'?'selected':''}>優先度: 低</option>
+          </select>
+          <select id="edit-task-status-${t.id}">
+            <option value="todo" ${t.status==='todo'?'selected':''}>未着手</option>
+            <option value="doing" ${t.status==='doing'?'selected':''}>進行中</option>
+            <option value="done" ${t.status==='done'?'selected':''}>完了</option>
+          </select>
+          <input type="number" id="edit-task-estimated-${t.id}" min="0.5" step="0.5" placeholder="見積h" value="${t.estimatedHours != null ? t.estimatedHours : ''}" style="width:78px;font-size:12px;padding:4px 8px;" autocomplete="off" />
+          <button class="small primary" onclick="currentProjectId=${p.id};saveTaskEdit(${t.id})"><i class="ti ti-check"></i> 保存</button>
+          <button class="small" onclick="cancelTaskEdit()">キャンセル</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  const hasMemo = !!(t.memo && t.memo.trim());
+  const links = hasMemo ? extractUrls(t.memo) : [];
+  const linksHtml = links.length ? `<div class="task-memo-links">${links.map(u => `<a class="task-memo-link" href="${esc(u)}" target="_blank" rel="noopener"><span class="memo-dot"></span>${esc(u)}</a>`).join('')}</div>` : '';
+  const projBadge = includeProjectBadge
+    ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg2);color:var(--text2);font-weight:500;cursor:pointer;" onclick="event.stopPropagation();openProject(${p.id})" title="プロジェクトを開く"><span style="width:7px;height:7px;border-radius:50%;background:${p.color};"></span>${esc(p.name)}</span>`
+    : '';
+  const recordHtml = recordingTaskId === t.id ? renderRecordingArea(t, p.id) : '';
+  return `<div class="task-item" id="task-item-${t.id}">
+    <div class="task-status-btn ${t.status}" onclick="currentProjectId=${p.id};cycleTaskStatus(${t.id})" title="クリックでステータス変更"></div>
+    <div class="task-body">
+      <div class="task-text ${t.status==='done'?'done':''}">${esc(t.text)}</div>
+      <div class="task-meta">
+        <span class="badge ${prB[t.priority]}">${prL[t.priority]}</span>
+        <span class="badge ${stB[t.status]}">${stL[t.status]}</span>
+        ${t.estimatedHours != null ? `<span class="badge badge-mid">見積 ${t.estimatedHours}h</span>` : ''}
+        ${(t.status === 'done' && t.actualHours != null) ? `<span class="badge badge-done">実績 ${t.actualHours}h</span>` : ''}
+        ${projBadge}
+        ${hasMemo ? '<span class="memo-indicator" style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px;"><i class="ti ti-notes" style="font-size:11px;"></i>メモあり</span>' : ''}
+      </div>
+      <div class="task-memo-area" id="memo-area-${t.id}">
+        <textarea class="task-memo-textarea" id="memo-text-${t.id}" placeholder="メモ・URLなど..." oninput="currentProjectId=${p.id};saveMemo(${t.id})">${esc(t.memo || '')}</textarea>
+        ${linksHtml}
+      </div>
+      ${recordHtml}
+    </div>
+    <button class="task-memo-btn ${hasMemo?'has-memo':''}" id="memo-btn-${t.id}" onclick="toggleMemo(${t.id})" title="メモ"><i class="ti ti-notes"></i></button>
+    <button class="task-edit-btn" onclick="currentProjectId=${p.id};startTaskEdit(${t.id})" title="編集"><i class="ti ti-pencil"></i></button>
+    <button class="task-delete" onclick="currentProjectId=${p.id};deleteTask(${t.id})" title="削除"><i class="ti ti-trash"></i></button>
+  </div>`;
+}
+
+// items: array of { task, project }
+function renderGroupedTasksHtml(items, includeProjectBadge) {
+  const grouped = {
+    todo: { high: [], mid: [], low: [] },
+    doing: { high: [], mid: [], low: [] },
+    done: { high: [], mid: [], low: [] },
+  };
+  for(const item of items) {
+    const s = grouped[item.task.status];
+    if(s && s[item.task.priority]) s[item.task.priority].push(item);
+  }
+  for(const s of TASK_STATUS_ORDER) for(const p of TASK_PRIORITY_ORDER) {
+    grouped[s][p].sort((a, b) => b.task.id - a.task.id);
+  }
+  let html = '';
+  for(const status of TASK_STATUS_ORDER) {
+    const statusCount = TASK_PRIORITY_ORDER.reduce((s, p) => s + grouped[status][p].length, 0);
+    if(statusCount === 0) continue;
+    html += `<div class="task-group-status">
+      <div class="task-group-status-header">
+        <span class="task-group-status-dot ${status}"></span>
+        <span class="task-group-status-title">${TASK_STATUS_LABEL[status]}</span>
+        <span class="task-group-status-count">${statusCount}件</span>
+      </div>`;
+    for(const priority of TASK_PRIORITY_ORDER) {
+      const bucket = grouped[status][priority];
+      if(!bucket.length) continue;
+      html += `<div class="task-group-priority">
+        <div class="task-group-priority-header">
+          <span class="task-group-priority-marker ${priority}"></span>
+          <span class="task-group-priority-title">優先度 ${TASK_PRIORITY_LABEL[priority]} (${bucket.length})</span>
+        </div>
+        ${bucket.map(({task, project}) => renderTaskItemHtml(task, project, includeProjectBadge)).join('')}
+      </div>`;
+    }
+    html += `</div>`;
+  }
+  return html;
+}
+
 function renderTasks() {
   const p = projects.find(x => x.id === currentProjectId);
   if(!p) return;
   // 他ビュー（全タスク一覧）のID重複を防ぐためクリア
   const tla = document.getElementById('task-list-all');
-  if(tla) tla.innerHTML = '';
+  if(tla) { tla.innerHTML = ''; tla.classList.remove('grouped'); }
   const filter = document.getElementById('filter-status')?.value || 'all';
   const tasks = (p.tasks || []).filter(t => filter === 'all' || t.status === filter);
-  const sorted = [...tasks].sort((a,b) => {
-    const so = {todo:0,doing:1,done:2}, po = {high:0,mid:1,low:2};
-    if(so[a.status] !== so[b.status]) return so[a.status] - so[b.status];
-    if(po[a.priority] !== po[b.priority]) return po[a.priority] - po[b.priority];
-    return b.id - a.id;
-  });
-  const stL = {todo:'未着手',doing:'進行中',done:'完了'}, stB = {todo:'badge-todo',doing:'badge-doing',done:'badge-done'};
-  const prL = {high:'高',mid:'中',low:'低'}, prB = {high:'badge-high',mid:'badge-mid',low:'badge-low'};
   const el = document.getElementById('task-list');
-  if(!sorted.length) { el.innerHTML = `<div class="empty">タスクがありません</div>`; return; }
-  el.innerHTML = sorted.map(t => {
-    if(t.id === editingTaskId) {
-      return `<div class="task-item editing" id="task-item-${t.id}">
-        <div class="task-status-btn ${t.status}" title="編集中"></div>
-        <div class="task-body">
-          <input type="text" id="edit-task-text-${t.id}" value="${esc(t.text)}" onkeydown="if(event.key==='Enter')saveTaskEdit(${t.id});else if(event.key==='Escape')cancelTaskEdit()" autocomplete="off" />
-          <div class="task-edit-row">
-            <select id="edit-task-priority-${t.id}">
-              <option value="high" ${t.priority==='high'?'selected':''}>優先度: 高</option>
-              <option value="mid" ${t.priority==='mid'?'selected':''}>優先度: 中</option>
-              <option value="low" ${t.priority==='low'?'selected':''}>優先度: 低</option>
-            </select>
-            <select id="edit-task-status-${t.id}">
-              <option value="todo" ${t.status==='todo'?'selected':''}>未着手</option>
-              <option value="doing" ${t.status==='doing'?'selected':''}>進行中</option>
-              <option value="done" ${t.status==='done'?'selected':''}>完了</option>
-            </select>
-            <input type="number" id="edit-task-estimated-${t.id}" min="0.5" step="0.5" placeholder="見積h" value="${t.estimatedHours != null ? t.estimatedHours : ''}" style="width:78px;font-size:12px;padding:4px 8px;" autocomplete="off" />
-            <button class="small primary" onclick="saveTaskEdit(${t.id})"><i class="ti ti-check"></i> 保存</button>
-            <button class="small" onclick="cancelTaskEdit()">キャンセル</button>
-          </div>
-        </div>
-      </div>`;
-    }
-    const hasMemo = !!(t.memo && t.memo.trim());
-    const links = hasMemo ? extractUrls(t.memo) : [];
-    const linksHtml = links.length ? `<div class="task-memo-links">${links.map(u => `<a class="task-memo-link" href="${esc(u)}" target="_blank" rel="noopener"><span class="memo-dot"></span>${esc(u)}</a>`).join('')}</div>` : '';
-    const recordHtml = recordingTaskId === t.id ? renderRecordingArea(t, currentProjectId) : '';
-    return `<div class="task-item" id="task-item-${t.id}">
-      <div class="task-status-btn ${t.status}" onclick="cycleTaskStatus(${t.id})" title="クリックでステータス変更"></div>
-      <div class="task-body">
-        <div class="task-text ${t.status==='done'?'done':''}">${esc(t.text)}</div>
-        <div class="task-meta">
-          <span class="badge ${prB[t.priority]}">${prL[t.priority]}</span>
-          <span class="badge ${stB[t.status]}">${stL[t.status]}</span>
-          ${t.estimatedHours != null ? `<span class="badge badge-mid">見積 ${t.estimatedHours}h</span>` : ''}
-          ${(t.status === 'done' && t.actualHours != null) ? `<span class="badge badge-done">実績 ${t.actualHours}h</span>` : ''}
-          ${hasMemo ? '<span class="memo-indicator" style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px;"><i class="ti ti-notes" style="font-size:11px;"></i>メモあり</span>' : ''}
-        </div>
-        <div class="task-memo-area" id="memo-area-${t.id}">
-          <textarea class="task-memo-textarea" id="memo-text-${t.id}" placeholder="メモ・URLなど..." oninput="saveMemo(${t.id})">${esc(t.memo || '')}</textarea>
-          ${linksHtml}
-        </div>
-        ${recordHtml}
-      </div>
-      <button class="task-memo-btn ${hasMemo?'has-memo':''}" id="memo-btn-${t.id}" onclick="toggleMemo(${t.id})" title="メモ"><i class="ti ti-notes"></i></button>
-      <button class="task-edit-btn" onclick="startTaskEdit(${t.id})" title="編集"><i class="ti ti-pencil"></i></button>
-      <button class="task-delete" onclick="deleteTask(${t.id})" title="削除"><i class="ti ti-trash"></i></button>
-    </div>`;
-  }).join('');
+  if(!tasks.length) {
+    el.classList.remove('grouped');
+    el.innerHTML = `<div class="empty">タスクがありません</div>`;
+    return;
+  }
+  el.classList.add('grouped');
+  el.innerHTML = renderGroupedTasksHtml(tasks.map(t => ({ task: t, project: p })), false);
   if(editingTaskId) setTimeout(() => document.getElementById(`edit-task-text-${editingTaskId}`)?.focus(), 50);
 }
 
 function renderAllTasks() {
   // 他ビュー（プロジェクト内タスク）のID重複を防ぐためクリア
   const tl = document.getElementById('task-list');
-  if(tl) tl.innerHTML = '';
+  if(tl) { tl.innerHTML = ''; tl.classList.remove('grouped'); }
   const filter = document.getElementById('filter-status-all')?.value || 'all';
   // タイトルをフィルターに応じて切り替え
   const titles = { all: '全タスク一覧', todo: '未着手一覧', doing: '進行中一覧', done: '完了一覧' };
@@ -1292,69 +1365,15 @@ function renderAllTasks() {
       flat.push({ task: t, project: p });
     }
   }
-  // 優先度（高→中→低）→ タスクID降順（新→古）
-  const po = { high: 0, mid: 1, low: 2 };
-  flat.sort((a,b) => {
-    if(po[a.task.priority] !== po[b.task.priority]) return po[a.task.priority] - po[b.task.priority];
-    return b.task.id - a.task.id;
-  });
-  const stL = {todo:'未着手',doing:'進行中',done:'完了'}, stB = {todo:'badge-todo',doing:'badge-doing',done:'badge-done'};
-  const prL = {high:'高',mid:'中',low:'低'}, prB = {high:'badge-high',mid:'badge-mid',low:'badge-low'};
   const el = document.getElementById('task-list-all');
   if(!el) return;
-  if(!flat.length) { el.innerHTML = `<div class="empty">タスクがありません</div>`; return; }
-  el.innerHTML = flat.map(({task: t, project: p}) => {
-    if(t.id === editingTaskId) {
-      return `<div class="task-item editing" id="task-item-${t.id}">
-        <div class="task-status-btn ${t.status}" title="編集中"></div>
-        <div class="task-body">
-          <input type="text" id="edit-task-text-${t.id}" value="${esc(t.text)}" onkeydown="if(event.key==='Enter'){currentProjectId=${p.id};saveTaskEdit(${t.id})}else if(event.key==='Escape')cancelTaskEdit()" autocomplete="off" />
-          <div class="task-edit-row">
-            <select id="edit-task-priority-${t.id}">
-              <option value="high" ${t.priority==='high'?'selected':''}>優先度: 高</option>
-              <option value="mid" ${t.priority==='mid'?'selected':''}>優先度: 中</option>
-              <option value="low" ${t.priority==='low'?'selected':''}>優先度: 低</option>
-            </select>
-            <select id="edit-task-status-${t.id}">
-              <option value="todo" ${t.status==='todo'?'selected':''}>未着手</option>
-              <option value="doing" ${t.status==='doing'?'selected':''}>進行中</option>
-              <option value="done" ${t.status==='done'?'selected':''}>完了</option>
-            </select>
-            <input type="number" id="edit-task-estimated-${t.id}" min="0.5" step="0.5" placeholder="見積h" value="${t.estimatedHours != null ? t.estimatedHours : ''}" style="width:78px;font-size:12px;padding:4px 8px;" autocomplete="off" />
-            <button class="small primary" onclick="currentProjectId=${p.id};saveTaskEdit(${t.id})"><i class="ti ti-check"></i> 保存</button>
-            <button class="small" onclick="cancelTaskEdit()">キャンセル</button>
-          </div>
-        </div>
-      </div>`;
-    }
-    const hasMemo = !!(t.memo && t.memo.trim());
-    const links = hasMemo ? extractUrls(t.memo) : [];
-    const linksHtml = links.length ? `<div class="task-memo-links">${links.map(u => `<a class="task-memo-link" href="${esc(u)}" target="_blank" rel="noopener"><span class="memo-dot"></span>${esc(u)}</a>`).join('')}</div>` : '';
-    const projBadge = `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg2);color:var(--text2);font-weight:500;cursor:pointer;" onclick="event.stopPropagation();openProject(${p.id})" title="プロジェクトを開く"><span style="width:7px;height:7px;border-radius:50%;background:${p.color};"></span>${esc(p.name)}</span>`;
-    const recordHtml = recordingTaskId === t.id ? renderRecordingArea(t, p.id) : '';
-    return `<div class="task-item" id="task-item-${t.id}">
-      <div class="task-status-btn ${t.status}" onclick="currentProjectId=${p.id};cycleTaskStatus(${t.id})" title="クリックでステータス変更"></div>
-      <div class="task-body">
-        <div class="task-text ${t.status==='done'?'done':''}">${esc(t.text)}</div>
-        <div class="task-meta">
-          <span class="badge ${prB[t.priority]}">${prL[t.priority]}</span>
-          <span class="badge ${stB[t.status]}">${stL[t.status]}</span>
-          ${t.estimatedHours != null ? `<span class="badge badge-mid">見積 ${t.estimatedHours}h</span>` : ''}
-          ${(t.status === 'done' && t.actualHours != null) ? `<span class="badge badge-done">実績 ${t.actualHours}h</span>` : ''}
-          ${projBadge}
-          ${hasMemo ? '<span class="memo-indicator" style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px;"><i class="ti ti-notes" style="font-size:11px;"></i>メモあり</span>' : ''}
-        </div>
-        <div class="task-memo-area" id="memo-area-${t.id}">
-          <textarea class="task-memo-textarea" id="memo-text-${t.id}" placeholder="メモ・URLなど..." oninput="currentProjectId=${p.id};saveMemo(${t.id})">${esc(t.memo || '')}</textarea>
-          ${linksHtml}
-        </div>
-        ${recordHtml}
-      </div>
-      <button class="task-memo-btn ${hasMemo?'has-memo':''}" id="memo-btn-${t.id}" onclick="toggleMemo(${t.id})" title="メモ"><i class="ti ti-notes"></i></button>
-      <button class="task-edit-btn" onclick="currentProjectId=${p.id};startTaskEdit(${t.id})" title="編集"><i class="ti ti-pencil"></i></button>
-      <button class="task-delete" onclick="currentProjectId=${p.id};deleteTask(${t.id})" title="削除"><i class="ti ti-trash"></i></button>
-    </div>`;
-  }).join('');
+  if(!flat.length) {
+    el.classList.remove('grouped');
+    el.innerHTML = `<div class="empty">タスクがありません</div>`;
+    return;
+  }
+  el.classList.add('grouped');
+  el.innerHTML = renderGroupedTasksHtml(flat, true);
   if(editingTaskId) setTimeout(() => document.getElementById(`edit-task-text-${editingTaskId}`)?.focus(), 50);
 }
 
