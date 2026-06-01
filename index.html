@@ -316,7 +316,7 @@
               <input type="number" id="weekly-hours-input" min="1" max="168" style="width:64px;padding:4px 8px;font-size:13px;" oninput="saveWeeklyHours()" autocomplete="off" />
               <span class="form-label">h</span>
             </div>
-            <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">各プロジェクトへの時間配分を%で設定します。合計100%が基準、120%はストレッチ目標です。</p>
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">各プロジェクトへの時間配分を%で設定します。合計100%が基準、120%はストレッチ目標です。下の「今週のプラン」（時間）と双方向に連動し、実績と振り返りにも反映されます。</p>
             <div id="effort-list"></div>
           </div>
         </div>
@@ -331,7 +331,7 @@
             </div>
           </div>
           <div class="acc-body">
-            <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">今週、各プロジェクトに何時間使うかを設定します。デフォルトはエフォート率と週稼働時間から自動計算されます。</p>
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6;">今週、各プロジェクトに何時間使うかを設定します。上の「エフォート率」（%）と双方向に連動し、ここを変更するとエフォート率も自動更新されます。</p>
             <div id="weekly-plan-list"></div>
           </div>
         </div>
@@ -873,8 +873,13 @@ function saveEffortRate(projectId, val) {
     const v = parseFloat(val);
     p.effortRate = isNaN(v) ? null : Math.max(0, Math.min(200, v));
   }
+  // 今週のプラン上書きをクリア → プランは effortRate から自動算出される値に戻る
+  const weekStart = getWeekStart(new Date());
+  const idx = weeklyPlans.findIndex(x => x.projectId === projectId && x.weekStart === weekStart);
+  if(idx >= 0) { weeklyPlans.splice(idx, 1); saveWeeklyPlans(); }
   save();
-  renderEffortList();
+  updateEffortTotal();
+  renderWeeklyPlan();
   renderWeeklyDashboard();
   renderProjectGrid();
 }
@@ -883,6 +888,7 @@ function saveWeeklyHours() {
   const val = parseInt(document.getElementById('weekly-hours-input')?.value) || 40;
   settings.weeklyHours = Math.max(1, Math.min(168, val));
   saveSettings();
+  renderWeeklyPlan();
   renderWeeklyDashboard();
 }
 
@@ -951,21 +957,33 @@ function getDefaultWeekTarget(projectId) {
 }
 
 function getEffectiveTarget(projectId, weekStart) {
-  const plan = getWeekPlan(projectId, weekStart);
-  if(plan) return plan.targetHours;
+  // エフォート率と今週のプランは双方向に連動するため、常に effortRate から算出
   return getDefaultWeekTarget(projectId);
 }
 
 function saveWeekPlan(projectId, weekStart, hours) {
-  const val = parseFloat(hours);
-  const idx = weeklyPlans.findIndex(p => p.projectId === projectId && p.weekStart === weekStart);
-  if(isNaN(val) || val < 0) {
-    if(idx >= 0) { weeklyPlans.splice(idx, 1); saveWeeklyPlans(); }
-    return;
+  const p = projects.find(x => x.id === projectId);
+  if(!p) return;
+  const wh = settings.weeklyHours || 40;
+  // プラン時間 → エフォート率に変換して保存（双方向連動）
+  if(hours === '' || hours == null) {
+    p.effortRate = null;
+  } else {
+    const h = parseFloat(hours);
+    if(isNaN(h) || h < 0) {
+      p.effortRate = null;
+    } else {
+      const rate = Math.round(h / wh * 100 * 10) / 10;
+      p.effortRate = Math.max(0, Math.min(200, rate));
+    }
   }
-  if(idx >= 0) weeklyPlans[idx].targetHours = val;
-  else weeklyPlans.push({ projectId, weekStart, targetHours: val });
-  saveWeeklyPlans();
+  // 旧データの週次上書きは削除（effortRate に一元化）
+  const idx = weeklyPlans.findIndex(x => x.projectId === projectId && x.weekStart === weekStart);
+  if(idx >= 0) { weeklyPlans.splice(idx, 1); saveWeeklyPlans(); }
+  save();
+  renderEffortList();
+  renderWeeklyDashboard();
+  renderProjectGrid();
 }
 
 function updateWeekPlanTotal() {
@@ -1015,10 +1033,23 @@ function renderWeeklyPlan() {
   if(el) el.innerHTML = projs.length ? rows + totalRow : '<div class="empty">プロジェクトがありません</div>';
 }
 
+function getEffortTotalDisplay() {
+  const total = Math.round(projects.reduce((s, p) => s + (p.effortRate || 0), 0) * 10) / 10;
+  let cls, msg;
+  if(Math.abs(total - 100) < 0.01) { cls = 'effort-total-ok'; msg = '✓ 合計100%'; }
+  else if(total < 100) { cls = 'effort-total-warn'; msg = `合計 ${total}%（残り ${Math.round((100 - total) * 10) / 10}%）`; }
+  else { cls = 'effort-total-over'; msg = `合計 ${total}%（+${Math.round((total - 100) * 10) / 10}% ストレッチ）`; }
+  return { cls, msg };
+}
+
+function updateEffortTotal() {
+  const { cls, msg } = getEffortTotalDisplay();
+  const el = document.getElementById('effort-total-num');
+  if(el) { el.textContent = msg; el.className = `effort-total-num ${cls}`; }
+}
+
 function renderEffortList() {
-  const total = projects.reduce((s, p) => s + (p.effortRate || 0), 0);
-  const totalClass = total === 100 ? 'effort-total-ok' : total < 100 ? 'effort-total-warn' : 'effort-total-over';
-  const totalMsg = total === 100 ? '✓ 合計100%' : total < 100 ? `合計 ${total}%（残り ${100 - total}%）` : `合計 ${total}%（+${total - 100}% ストレッチ）`;
+  const { cls: totalClass, msg: totalMsg } = getEffortTotalDisplay();
   const rows = projectsByEffortRate().map(p => `
     <div class="effort-row">
       <div class="effort-dot" style="background:${p.color}"></div>
@@ -1036,7 +1067,7 @@ function renderEffortList() {
   if(el) el.innerHTML = noProj || rows + `
     <div class="effort-total-row">
       <span style="color:var(--text2);font-size:13px;">合計</span>
-      <span class="effort-total-num ${totalClass}">${totalMsg}</span>
+      <span id="effort-total-num" class="effort-total-num ${totalClass}">${totalMsg}</span>
     </div>`;
 }
 
